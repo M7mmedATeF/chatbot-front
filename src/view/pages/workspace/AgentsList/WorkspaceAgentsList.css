@@ -1,0 +1,20 @@
+.workspace-agents {
+  .headline {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .form-box {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+  }
+
+  .agents-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+    gap: 2rem;
+  }
+}

@@ -1,0 +1,112 @@
+@import url("https://fonts.googleapis.com/css2?family=Nata+Sans:wght@100..900&display=swap");
+
+:root {
+  --font-awesome: "Font Awesome 5 Free";
+  --bg-color: #020009;
+  --secondary-bg-color: #080223;
+  --text-color: #fff;
+  --secondary-text-color: #ccc;
+  --primary-color: #171c42;
+  --secondary-color: #103c62;
+  --success-color: #38a953;
+  --danger-color: #dc3545;
+  --warning-color: #ffc107;
+  --scrollbar-size: 5px;
+  --inline-padding: 15vw;
+}
+
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
+  background-color: #333;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #fff;
+  border-radius: 1rem;
+}
+
+html {
+  @media (width < 600px) {
+    font-size: 14px;
+  }
+}
+
+body {
+  width: 100dvw;
+  height: 100dvh;
+  overflow-x: hidden;
+  color: var(--text-color);
+  background: linear-gradient(
+    135deg,
+    var(--bg-color),
+    var(--secondary-bg-color)
+  );
+  padding: 0;
+  margin: 0;
+  font-family: "Nata Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a,
+span {
+  display: inline-block;
+}
+
+a,
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  color: inherit;
+  background-color: transparent;
+  text-decoration: none;
+  font-size: inherit;
+}
+
+input {
+  outline: none;
+  border: none;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.section-page {
+  height: calc(100dvh - 50px);
+  overflow-y: auto;
+
+  h2 {
+    font-size: 3rem;
+    margin-bottom: 2rem;
+  }
+
+  .headline {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 0.8rem;
+
+    h3 {
+      font-size: 1.5rem;
+      font-weight: 200;
+    }
+  }
+
+  .form-box {
+    margin-block: 1rem 2rem;
+  }
+}

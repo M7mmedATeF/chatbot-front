@@ -1,0 +1,41 @@
+.auth-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100dvh;
+  width: 100dvw;
+
+  .form-box {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+    gap: 1rem;
+    padding: 2rem;
+    border-radius: 1rem;
+    min-width: 25vw;
+
+    form {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: stretch;
+      gap: inherit;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: stretch;
+      gap: 5px;
+
+      &.form-actions-end {
+        justify-content: flex-end;
+      }
+
+      .forgot-password {
+        padding-inline: 0;
+      }
+    }
+  }
+}

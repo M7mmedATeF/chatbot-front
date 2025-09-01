@@ -1,0 +1,76 @@
+.checkbox {
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: flex-start;
+  align-items: center;
+
+  input {
+    display: none;
+  }
+
+  &::before {
+    content: "";
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 0.8rem;
+    height: 0.8rem;
+    font-size: 0.3rem;
+    border-radius: 0.2rem;
+    border: 1px solid var(--secondary-text-color);
+    margin-inline-end: 0.5rem;
+    transition: color 0.2s ease-in;
+
+    &:has(input:checked) {
+      &::before {
+        content: "✓";
+        color: #fff;
+      }
+    }
+  }
+}
+
+.primary {
+  &:has(input:checked) {
+    &::before {
+      content: "✓";
+      background: var(--primary-color);
+    }
+  }
+}
+
+.secondary {
+  &:has(input:checked) {
+    &::before {
+      content: "✓";
+      background: var(--secondary-color);
+    }
+  }
+}
+
+.success {
+  &:has(input:checked) {
+    &::before {
+      content: "✓";
+      background: var(--success-color);
+    }
+  }
+}
+
+.warning {
+  &:has(input:checked) {
+    &::before {
+      content: "✓";
+      background: var(--warning-color);
+    }
+  }
+}
+
+.danger {
+  &:has(input:checked) {
+    &::before {
+      content: "✓";
+      background: var(--danger-color);
+    }
+  }
+}

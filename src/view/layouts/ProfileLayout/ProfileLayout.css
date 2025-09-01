@@ -1,0 +1,74 @@
+.user-profile-page {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+  gap: 2rem;
+  align-items: flex-start;
+
+  aside {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: inherit;
+  }
+
+  .profile-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+
+    > * {
+      width: 100%;
+    }
+  }
+
+  .user-card {
+    text-align: center;
+  }
+
+  img.profile-img {
+    width: 50%;
+  }
+
+  .workspaces-list {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 0.5rem;
+
+    li:not(:last-child) {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    li a {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 0.8rem;
+      padding-block: 0.3rem;
+      transition: all 0.2s ease-in-out;
+      border-radius: 0.5rem;
+
+      &:hover {
+        background-color: var(--primary-color);
+        padding-inline: 0.5rem;
+      }
+
+      .name {
+        font-weight: 500;
+      }
+
+      .position {
+        font-size: 0.8rem;
+        font-weight: 100;
+      }
+
+      img {
+        width: 45px;
+      }
+    }
+  }
+}

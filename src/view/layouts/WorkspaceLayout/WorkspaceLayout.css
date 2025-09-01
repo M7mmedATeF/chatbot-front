@@ -1,0 +1,80 @@
+.workspace-layout {
+  --side-width: 120px;
+
+  display: grid;
+  grid-template-rows: 50px 1fr;
+  height: 100dvh;
+  overflow: hidden;
+  height: 100dvh;
+  flex-shrink: 0;
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 0.5rem 1.2rem;
+    border-radius: 0;
+    border-inline: none;
+    height: 50px;
+
+    h1 {
+      font-size: 1rem;
+      font-weight: 200;
+      text-align: center;
+      text-transform: capitalize;
+    }
+
+    li {
+      a,
+      button {
+        height: 100%;
+        justify-content: flex-start;
+        align-items: flex-end;
+      }
+    }
+  }
+
+  .select-workspace-area {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+    height: 95svh;
+
+    img {
+      width: min(300px, 100%);
+      animation: floating-bot 3s ease-in-out 2.5s infinite alternate;
+    }
+
+    h1 {
+      font-size: 3rem;
+      font-weight: 100;
+    }
+
+    p {
+      font-size: 1.3rem;
+      font-weight: 200;
+      line-height: 1.2cap;
+    }
+
+    button {
+      margin-top: 1rem;
+    }
+  }
+}
+
+@keyframes floating-bot {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+
+  50% {
+    translate: 0 -30px;
+  }
+}

@@ -1,0 +1,79 @@
+.room-layout {
+  display: grid;
+  grid-template-columns: 350px 1fr;
+  height: calc(100dvh - 50px);
+  --inline-padding: 5vw;
+
+  .rooms-sidebar {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 1rem;
+    border-radius: 0;
+    height: 100%;
+    border-block: 0;
+    border-inline-start: 0;
+
+    .headline {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+
+        button,
+        a {
+          padding: 0.5rem;
+        }
+      }
+    }
+
+    .rooms-list {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: stretch;
+      gap: 5px;
+      max-height: 79svh;
+      overflow-y: auto;
+      flex-shrink: 0;
+
+      .room-item {
+        display: inline-block;
+        width: 100%;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        transition: 0.3s all ease-in-out;
+
+        &.active {
+          background-color: var(--primary-color);
+        }
+
+        &:not(.active):hover {
+          background-color: rgba(255, 255, 255, 0.1);
+        }
+      }
+    }
+  }
+
+  .search-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-block: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+    button {
+      padding: 0.5rem;
+    }
+  }
+}

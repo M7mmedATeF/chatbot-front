@@ -1,0 +1,75 @@
+.fileDropdown {
+  position: relative;
+
+  & > span {
+    font-size: 0.7rem;
+    padding-inline: 0.5rem;
+    translate: 0 -2px;
+  }
+
+  .fileList {
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    overflow-y: hidden;
+    gap: 1rem;
+    padding: 1rem;
+    position: absolute;
+    bottom: 0%;
+    translate: 0 130%;
+    inset-inline-start: 0;
+    background: #3335;
+    border-radius: 0.5rem;
+    width: min(20vw, 80svw);
+    border: 1px solid var(--secondary-text-color);
+    opacity: 0;
+    pointer-events: none;
+    transition: translate 0.2s, opacity 0.2s;
+    backdrop-filter: blur(0.2rem);
+
+    .fileItem {
+      cursor: pointer;
+      width: 100px;
+      background: linear-gradient(45deg, #333, var(--bg-color));
+      padding: 0.5rem;
+      border: 1px solid var(--text-color);
+      border-radius: 0.25rem;
+
+      .fileItemIcon {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        aspect-ratio: 1;
+      }
+
+      p {
+        text-align: center;
+      }
+    }
+  }
+
+  &:hover {
+    .fileList {
+      translate: 0 100%;
+      opacity: 1;
+      pointer-events: all;
+    }
+  }
+}
+
+.input {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border: 1px solid var(--secondary-text-color);
+  border-radius: 0.2rem;
+
+  input {
+    padding: 0.5rem 0.75rem;
+    background-color: transparent;
+    color: currentColor;
+  }
+}

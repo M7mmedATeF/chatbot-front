@@ -1,0 +1,93 @@
+.agentCard {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  /* border: 1px solid rgba(255, 255, 255, 0.4); */
+}
+
+.agentCard_info {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  .info {
+    display: grid;
+    align-items: center;
+    grid-template-columns: 50px 1fr;
+    gap: 1rem;
+
+    h3 {
+      font-size: 1.2rem;
+    }
+  }
+
+  img {
+    width: 100%;
+    aspect-ratio: 1/1;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .actions {
+    position: absolute;
+    inset-inline-end: 0.5rem;
+    top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    button,
+    a {
+      padding: 0.5rem;
+    }
+  }
+
+  .description {
+    button {
+      text-decoration: underline;
+    }
+  }
+
+  .agentCard_tools {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-block: 1rem;
+    border-block: 1px solid rgba(255, 255, 255, 0.1);
+
+    span {
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.3rem;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-color);
+    }
+  }
+
+  .addControls {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+
+    .formInputs {
+      display: contents;
+    }
+
+    .actionBTNs {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: inherit;
+      width: 100%;
+
+      button {
+        width: 100%;
+      }
+    }
+  }
+}

@@ -1,0 +1,116 @@
+.conversation-page {
+  height: calc(100dvh - 50px);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  overflow-y: hidden;
+
+  .conversation-header {
+    border-inline: none;
+    border-top: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 0;
+
+    .conversation-actions {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+
+      button,
+      a {
+        padding: 0;
+      }
+    }
+  }
+
+  .conversation-body {
+    overflow-x: hidden;
+    padding: 1rem;
+
+    .messages-list {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: stretch;
+      gap: 1rem;
+
+      .message-container {
+        display: flex;
+        justify-content: flex-start;
+
+        &:has(.user-message) {
+          justify-content: flex-end;
+        }
+      }
+
+      .message {
+        padding: 0.5rem;
+        min-width: 100px;
+        max-width: 70%;
+        border-radius: 0.5rem;
+
+        .msg-content {
+          margin-bottom: 0.2rem;
+        }
+        .datetime {
+          font-size: 0.8rem;
+        }
+      }
+
+      .user-message {
+        background-color: var(--primary-color);
+        border-end-end-radius: 0;
+        text-align: end;
+      }
+
+      .agent-message {
+        background-color: var(--secondary-color);
+        border-end-start-radius: 0;
+        text-align: start;
+      }
+
+      .tool-message {
+        background-color: var(--text-color);
+        color: var(--bg-color);
+
+        .header {
+          cursor: pointer;
+          user-select: none;
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .details-view {
+          max-height: 0vh;
+          overflow-y: hidden;
+          transition: all 0.3s ease-in-out;
+
+          pre {
+            margin-top: 0.5rem;
+          }
+
+          &.open {
+            max-height: 25vh;
+            overflow-y: auto;
+          }
+        }
+      }
+    }
+  }
+
+  .conversation-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    > * {
+      border-radius: 0;
+    }
+
+    input {
+      padding: 1rem;
+    }
+  }
+}

@@ -1,0 +1,15 @@
+.profile-routing-page {
+  tr > a {
+    display: contents;
+
+    p {
+      font-weight: 600;
+    }
+  }
+
+  .Entry-value {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+}

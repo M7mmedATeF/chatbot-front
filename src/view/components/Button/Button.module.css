@@ -1,0 +1,46 @@
+.linkbtn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  padding: 0.5rem 1rem;
+  color: inherit;
+  border-radius: 0.2rem;
+  border: 1px solid transparent;
+  transition: filter 0.2s ease-in-out;
+  text-align: center;
+
+  &:hover {
+    filter: brightness(1.2);
+  }
+
+  &:active {
+    filter: brightness(0.9);
+  }
+
+  &:focus {
+    outline: 1px solid var(--primary-color);
+  }
+}
+
+.borderd {
+  border: 1px solid var(--text-color);
+}
+
+.primary {
+  background: var(--primary-color);
+}
+
+.secondary {
+  background: var(--secondary-color);
+}
+.success {
+  background: var(--success-color);
+}
+.danger {
+  background: var(--danger-color);
+}
+.warning {
+  background: var(--warning-color);
+  color: #000;
+}
