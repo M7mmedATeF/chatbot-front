@@ -93,7 +93,7 @@ jobs:
       - name: Verify deployment
         run: |
           echo "🔍 Verifying deployment..."
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST "
+          ssh -i ~/.ssh/authorized_keys -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST "
               echo '=== Deployment Contents ==='
               ls -la $PROJECT_PATH
               echo ''
