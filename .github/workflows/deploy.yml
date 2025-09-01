@@ -3,7 +3,6 @@ name: Build and Deploy to Server
 on:
   push:
     branches: [dev]
-  workflow_dispatch:
 
 jobs:
   build-and-deploy:
@@ -16,7 +15,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: "24.6.0"
           cache: "npm"
 
       - name: Install dependencies
@@ -46,24 +45,12 @@ jobs:
           if [ -z "${{ secrets.PROJECT_PATH }}" ]; then
           echo "Error: PROJECT_PATH secret is not set"
           exit 1
-          fi  
-          mkdir -p ~/.ssh/
-          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
-      - name: Create backup on server (optional)
-        run: |
-          echo "Creating backup on server..."
-          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
-              if [ -d '${{ secrets.PROJECT_PATH }}' ]; then
-              timestamp=\$(date +%Y%m%d_%H%M%S)
-              mkdir -p ${{ secrets.PROJECT_PATH }}/../backups
-              cp -r ${{ secrets.PROJECT_PATH }} ${{ secrets.PROJECT_PATH }}/../backups/backup_\$timestamp
-              echo 'Backup created successfully'
-              else
-              echo 'No existing deployment found, skipping backup'
-              fi
-          "
+          fi
+        #   mkdir -p ~/.ssh/
+        #   echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+        #   chmod 600 ~/.ssh/id_rsa
+        #   ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
       - name: Deploy to server
         run: |
           echo "Deploying to server..."
