@@ -33,82 +33,16 @@ jobs:
       - name: Build project
         run: npm run build
 
-      - name: Debug Secrets
-        run: |
-          echo "🔍 Debugging GitHub Secrets..."
-          echo "SSH_HOST length: ${#SSH_HOST}"
-          echo "SSH_USER length: ${#SSH_USER}"
-          echo "SSH_KEY length: ${#SSH_KEY}"
-          echo "PROJECT_PATH length: ${#PROJECT_PATH}"
-
-          # Show first few characters (safely)
-          if [ -n "$SSH_HOST" ]; then echo "SSH_HOST starts with: ${SSH_HOST:0:5}..."; fi
-          if [ -n "$SSH_USER" ]; then echo "SSH_USER starts with: ${SSH_USER:0:3}..."; fi
-          if [ -n "$PROJECT_PATH" ]; then echo "PROJECT_PATH starts with: ${PROJECT_PATH:0:5}..."; fi
-
-          echo "SSH_KEY preview (first 50 chars):"
-          echo "${SSH_KEY:0:50}..."
-
-      - name: Setup SSH
-        run: |
-          # Check if required secrets are set
-          if [ -z "$SSH_KEY" ]; then
-            echo "❌ Error: SSH_KEY secret is not set or is empty"
-            exit 1
-          fi
-          if [ -z "$SSH_HOST" ]; then
-            echo "❌ Error: SSH_HOST secret is not set or is empty"
-            exit 1
-          fi
-          if [ -z "$SSH_USER" ]; then
-            echo "❌ Error: SSH_USER secret is not set or is empty"
-            exit 1
-          fi
-          if [ -z "$PROJECT_PATH" ]; then
-            echo "❌ Error: PROJECT_PATH secret is not set or is empty"
-            exit 1
-          fi
-
-          echo "✅ All secrets are properly configured"
-          echo "🔧 Setting up SSH connection..."
-
-          mkdir -p ~/.ssh/
-          echo "$SSH_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H $SSH_HOST >> ~/.ssh/known_hosts
-
-          echo "🔑 SSH setup complete"
+      - name: 🔐 Add SSH Key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
 
       - name: Deploy to server
         run: |
-          echo "🚀 Deploying to server..."
-          echo "📍 Target: $SSH_USER@$SSH_HOST:$PROJECT_PATH"
-
-          rsync -avz --delete \
-              -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
-              ./dist/ \
-              $SSH_USER@$SSH_HOST:$PROJECT_PATH
-
-          echo "✅ Deployment completed successfully"
-      - name: Verify deployment
-        run: |
-          echo "🔍 Verifying deployment..."
-          ssh -i ~/.ssh/authorized_keys -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST "
-              echo '=== Deployment Contents ==='
-              ls -la $PROJECT_PATH
-              echo ''
-              echo '=== Checking key files ==='
-              if [ -f '$PROJECT_PATH/index.html' ]; then
-                echo '✅ index.html exists'
-              else
-                echo '❌ index.html missing'
-                exit 1
-              fi
-              if [ -d '$PROJECT_PATH/assets' ]; then
-                echo '✅ assets directory exists'
-              else
-                echo '❌ assets directory missing'
-                exit 1
-              fi
-              echo '=== Deployment verification complete ==='
-          "
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+              # Deploy from dev branch
+              cd ${{ secrets.PROJECT_PATH }}
+              git fetch origin dev
+              git reset --hard origin/dev
+          EOF
