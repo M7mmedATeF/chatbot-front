@@ -1,43 +1,43 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
-export interface TeamWithDates {
+export interface RoomWithDates {
   id: string;
   name: string;
   createdAt: string;
   updatedAt: string;
 }
 
-interface ActiveTeamState {
+interface ActiveRoomState {
   id: string;
   name: string;
   createdAt: string;
   updatedAt: string;
-  setActiveTeam: (team: TeamWithDates) => void;
-  clearActiveTeam: () => void;
+  setActiveRoom: (room: RoomWithDates) => void;
+  clearActiveRoom: () => void;
 }
 
-const ACTIVE_TEAM_KEY = "team";
+const ACTIVE_ROOM_KEY = "room";
 
-export const useActiveTeam = create<ActiveTeamState>()(
+export const useActiveRoom = create<ActiveRoomState>()(
   persist(
     (set) => ({
       id: "",
       name: "",
       createdAt: "",
       updatedAt: "",
-      setActiveTeam: (team: TeamWithDates) => {
+      setActiveRoom: (room: RoomWithDates) => {
         // Also store in sessionStorage for immediate access
-        sessionStorage.setItem(ACTIVE_TEAM_KEY, team.id);
-        set(team);
+        sessionStorage.setItem(ACTIVE_ROOM_KEY, room.id);
+        set(room);
       },
-      clearActiveTeam: () => {
-        sessionStorage.removeItem(ACTIVE_TEAM_KEY);
+      clearActiveRoom: () => {
+        sessionStorage.removeItem(ACTIVE_ROOM_KEY);
         set({ id: "", name: "", createdAt: "", updatedAt: "" });
       },
     }),
     {
-      name: ACTIVE_TEAM_KEY,
+      name: ACTIVE_ROOM_KEY,
       storage: createJSONStorage(() => sessionStorage),
       // Only persist these fields
       partialize: (state) => ({
@@ -50,7 +50,7 @@ export const useActiveTeam = create<ActiveTeamState>()(
   )
 );
 
-// Helper function to get active team ID from sessionStorage
-export const getActiveTeamId = (): string | null => {
-  return sessionStorage.getItem(ACTIVE_TEAM_KEY);
+// Helper function to get active room ID from sessionStorage
+export const getActiveRoomId = (): string | null => {
+  return sessionStorage.getItem(ACTIVE_ROOM_KEY);
 };

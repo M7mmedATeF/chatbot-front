@@ -6,6 +6,7 @@ type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   value?: string;
   onChange?: (value: string) => void;
   label?: string;
+  error?: string;
 };
 
 const Input = ({
@@ -13,19 +14,23 @@ const Input = ({
   value,
   onChange,
   label,
+  error,
   ...props
 }: InputProps) => {
   return (
-    <label className={styles.input}>
-      {label && <span className={styles.label}>{label}</span>}
-      <input
-        type="text"
-        placeholder={placeholder}
-        value={value}
-        {...props}
-        onChange={(e) => onChange?.(e.target.value)}
-      />
-    </label>
+    <div className={styles.inputWrapper}>
+      <label className={styles.input}>
+        {label && <span className={styles.label}>{label}</span>}
+        <input
+          type="text"
+          placeholder={placeholder}
+          value={value}
+          {...props}
+          onChange={(e) => onChange?.(e.target.value)}
+        />
+      </label>
+      {error && <small className={styles.error}>{error}</small>}
+    </div>
   );
 };
 

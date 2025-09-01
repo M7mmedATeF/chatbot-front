@@ -1,0 +1,7 @@
+---
+description: how to fetch queries & mutations actions
+globs: Mutation, Queries
+alwaysApply: true
+---
+
+On doing and GQL fetches you should use tanstack for data handle states, loadings, errors using useFetch hook & tanstack query

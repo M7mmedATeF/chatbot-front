@@ -2,31 +2,68 @@ import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link, NavLink, useParams, useSearchParams } from "react-router";
 import "./TeamsSideBar.css";
-import type { Team } from "../../../types/team.entity";
 import { AiOutlineRobot } from "react-icons/ai";
 import Button from "../Button/Button";
 import { useActiveTeam } from "../../../stores/team.store";
+import { useTeams } from "../../../hooks/useTeams";
+import Loader from "../Loader/Loader";
 
-const TeamsSideBar = ({ teams = [] }: { teams: Team[] }) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_, setSearchParams] = useSearchParams();
+const TeamsSideBar = () => {
+  const [, setSearchParams] = useSearchParams();
   const { wsId } = useParams();
 
-  const { addTeam }: any = useActiveTeam((state) => state);
+  const { setActiveTeam, id: activeTeamId } = useActiveTeam();
+
+  // Shared teams query (current user's teams)
+  const {
+    data: teamsData,
+    isLoading: loadingTeams,
+    error: teamsError,
+    refetch: refetchTeams,
+  } = useTeams();
 
   return (
     <div className="team-sidebar">
       <div className="workspaces-list">
-        {teams.map((team) => (
-          <NavLink
-            to={`team/${team.id}`}
-            className="workspace"
-            onClick={() => addTeam({ id: team.id, name: team.name })}
-          >
-            <img src={"http://placehold.co/60"} alt="workspace" />
-            <p>{team.name}</p>
-          </NavLink>
-        ))}
+        {loadingTeams ? (
+          <div className="loading-container">
+            <Loader />
+            <p>Loading teams...</p>
+          </div>
+        ) : teamsError ? (
+          <div className="error-container">
+            <p>Error loading teams</p>
+            <Button onClick={() => refetchTeams()}>Retry</Button>
+          </div>
+        ) : (teamsData?.listMyTeams || []).length > 0 ? (
+          (teamsData?.listMyTeams || []).map((team) => (
+            <NavLink
+              key={team.id}
+              to={
+                wsId ? `/workspace/${wsId}/team/${team.id}` : `/team/${team.id}`
+              }
+              className={`workspace ${
+                activeTeamId === team.id ? "active" : ""
+              }`}
+              onClick={() =>
+                setActiveTeam({
+                  id: team.id,
+                  name: team.name,
+                  createdAt: team.createdAt,
+                  updatedAt: team.updatedAt,
+                })
+              }
+            >
+              <img src={"http://placehold.co/60"} alt="team" />
+              <p>{team.name}</p>
+            </NavLink>
+          ))
+        ) : (
+          <div className="empty-container">
+            <p>No teams found</p>
+            <Button onClick={() => refetchTeams()}>Refresh</Button>
+          </div>
+        )}
       </div>
 
       <Button

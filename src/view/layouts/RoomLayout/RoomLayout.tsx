@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   NavLink,
   Outlet,
@@ -6,11 +6,14 @@ import {
   useParams,
   useSearchParams,
 } from "react-router";
+import { useRooms } from "../../../hooks/useRooms";
+import { useActiveRoom } from "../../../stores/room.store";
 import "./RoomLayout.css";
 import bot from "../../../assets/images/bot.png";
 import Button from "../../components/Button/Button";
 import Input from "../../components/Input/Input";
 import Modal from "../../components/Modal/Modal";
+import Loader from "../../components/Loader/Loader";
 import {
   AiOutlinePlus,
   AiOutlineRobot,
@@ -18,12 +21,41 @@ import {
 } from "react-icons/ai";
 
 const RoomLayout = () => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_, setSearchParams] = useSearchParams();
+  const [, setSearchParams] = useSearchParams();
   const nav = useNavigate();
-  const { wsId, teamId } = useParams();
+  const { wsId, teamId, roomId } = useParams();
+  const numericRoomId = roomId ? parseInt(roomId, 10) : undefined;
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
+
+  const { setActiveRoom, id: activeRoomId } = useActiveRoom();
+
+  // Query for fetching rooms
+  const {
+    data: roomsData,
+    isLoading: loadingRooms,
+    error: roomsError,
+    refetch: refetchRooms,
+  } = useRooms();
+
+  // Auto-select room from URL if not already active
+  React.useEffect(() => {
+    if (
+      numericRoomId &&
+      roomsData?.rooms &&
+      activeRoomId !== numericRoomId.toString()
+    ) {
+      const room = roomsData.rooms.find((r) => r.id === numericRoomId);
+      if (room) {
+        setActiveRoom({
+          id: room.id.toString(), // Convert to string for store
+          name: room.name,
+          createdAt: room.createdAt,
+          updatedAt: room.updatedAt,
+        });
+      }
+    }
+  }, [numericRoomId, roomsData, activeRoomId, setActiveRoom]);
 
   return (
     <main className="room-layout">
@@ -60,13 +92,43 @@ const RoomLayout = () => {
         </div>
 
         <div className="rooms-list">
-          {Array.from({ length: 10 }).map((_, index) => (
-            <div>
-              <NavLink to={`room/${index}`} className="room-item">
-                Lorem ipsum dolor sit amet consectetur
-              </NavLink>
+          {loadingRooms ? (
+            <div className="loading-container">
+              <Loader />
+              <p>Loading rooms...</p>
             </div>
-          ))}
+          ) : roomsError ? (
+            <div className="error-container">
+              <p>Error loading rooms</p>
+              <Button onClick={() => refetchRooms()}>Retry</Button>
+            </div>
+          ) : (roomsData?.rooms || []).length > 0 ? (
+            (roomsData?.rooms || []).map((room) => (
+              <div key={room.id}>
+                <NavLink
+                  to={`room/${room.id}`}
+                  className={`room-item ${
+                    activeRoomId === room.id.toString() ? "active" : ""
+                  }`}
+                  onClick={() =>
+                    setActiveRoom({
+                      id: room.id.toString(), // Convert to string for store
+                      name: room.name,
+                      createdAt: room.createdAt,
+                      updatedAt: room.updatedAt,
+                    })
+                  }
+                >
+                  {room.name}
+                </NavLink>
+              </div>
+            ))
+          ) : (
+            <div className="empty-container">
+              <p>No rooms found</p>
+              <Button onClick={() => refetchRooms()}>Refresh</Button>
+            </div>
+          )}
         </div>
       </div>
       <div className="view-area">

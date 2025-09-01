@@ -1,12 +1,13 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { Outlet, useLocation, useParams, useSearchParams } from "react-router";
 import "./WorkspaceLayout.css";
 import bot from "../../../assets/images/bot.png";
 import Button from "../../components/Button/Button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
-import { useActiveWorkspace } from "../../../stores/workspace.store";
+
 import { faHome } from "@fortawesome/free-regular-svg-icons";
+import { useActiveWorkspace } from "../../../stores/workspace.store";
 import { useControllerContext } from "../../../context/ControllerContext";
 import {
   AiOutlineLogout,
@@ -16,50 +17,85 @@ import {
 import { useActiveTeam } from "../../../stores/team.store";
 import Modal from "../../components/Modal/Modal";
 import CreateTeam from "../../pages/team/Create/CreateTeam";
+import { useWorkspaces } from "../../../hooks/useWorkspaces";
+import { useTeams } from "../../../hooks/useTeams";
+import Loader from "../../components/Loader/Loader";
 
 const WorkspaceLayout = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { pathname } = useLocation();
   const { wsId, teamId } = useParams();
   const { updateTeamId, updateWsId } = useControllerContext();
-  const workspaces = useMemo(() => {
-    return Array.from({ length: 10 }).map((_, index) => {
-      return {
-        id: index,
-        name: `Workspace ${index}`,
-      };
-    });
-  }, []);
-  const teams = useMemo(() => {
-    return Array.from({ length: 10 }).map((_, index) => {
-      return {
-        id: index,
-        name: `Team ${index}`,
-      };
-    });
-  }, []);
-  const { name, addWorskpace, removeWorkspace }: any = useActiveWorkspace(
-    (state) => state
-  );
+  // Shared workspaces query
   const {
-    name: teamName,
-    addTeam,
-    removeTeam,
-  }: any = useActiveTeam((state) => state);
+    data: workspacesData,
+    isLoading: loadingWorkspaces,
+    error: workspacesError,
+    refetch: refetchWorkspaces,
+  } = useWorkspaces();
+  // Shared teams query (current user's teams)
+  const {
+    data: teamsData,
+    isLoading: loadingTeams,
+    error: teamsError,
+    refetch: refetchTeams,
+  } = useTeams();
+  const {
+    id: activeWorkspaceId,
+    name: activeWorkspaceName,
+    setActiveWorkspace,
+    clearActiveWorkspace,
+  } = useActiveWorkspace();
+  const {
+    id: activeTeamId,
+    name: activeTeamName,
+    setActiveTeam,
+    clearActiveTeam,
+  } = useActiveTeam();
 
   useEffect(() => {
-    if (pathname == "/") removeWorkspace();
-  }, [pathname, removeWorkspace, searchParams]);
+    if (pathname == "/") clearActiveWorkspace();
+  }, [pathname, searchParams, clearActiveWorkspace]);
 
   useEffect(() => {
     updateWsId(wsId || "");
-    if (teamId) addTeam({ id: teamId, name: teamName });
-    else removeTeam();
-  }, [wsId, updateWsId]);
+    if (!teamId) clearActiveTeam();
+  }, [wsId, teamId, updateWsId, clearActiveTeam]);
 
   useEffect(() => {
     updateTeamId(teamId || "");
   }, [teamId, updateTeamId]);
+
+  // Auto-select workspace from URL if not already active
+  useEffect(() => {
+    if (wsId && workspacesData?.myWorkspaces && activeWorkspaceId !== wsId) {
+      const workspace = workspacesData.myWorkspaces.find(
+        (ws) => ws.id === wsId
+      );
+      if (workspace) {
+        setActiveWorkspace({
+          id: workspace.id,
+          name: workspace.name,
+          createdAt: workspace.createdAt,
+        });
+      }
+    }
+  }, [wsId, workspacesData, activeWorkspaceId, setActiveWorkspace]);
+
+  // Auto-select team from URL if not already active
+  useEffect(() => {
+    if (teamId && teamsData?.listMyTeams && activeTeamId !== teamId) {
+      const team = teamsData.listMyTeams.find((t) => t.id === teamId);
+      if (team) {
+        setActiveTeam({
+          id: team.id,
+          name: team.name,
+          createdAt: team.createdAt,
+          updatedAt: team.updatedAt,
+        });
+      }
+    }
+  }, [teamId, teamsData, activeTeamId, setActiveTeam]);
 
   return (
     <main className="workspace-layout">
@@ -80,37 +116,82 @@ const WorkspaceLayout = () => {
           )}
 
           <li className="dd-start">
-            <span>{name || "My Workspaces"}</span>
+            <span>{activeWorkspaceName || "My Workspaces"}</span>
             <ul className="glass-bg">
-              {workspaces.length > 0 &&
-                workspaces.map((ws) => (
+              {loadingWorkspaces ? (
+                <li>
+                  <Loader />
+                  <span>Loading workspaces...</span>
+                </li>
+              ) : workspacesError ? (
+                <li>
+                  <span>Error loading workspaces</span>
+                  <Button onClick={() => refetchWorkspaces()}>Retry</Button>
+                </li>
+              ) : (workspacesData?.myWorkspaces || []).length > 0 ? (
+                (workspacesData?.myWorkspaces || []).map((ws) => (
                   <li key={ws.id}>
                     <Button
                       href={`/workspace/${ws.id}`}
-                      onClick={() => addWorskpace(ws)}
+                      onClick={() =>
+                        setActiveWorkspace({
+                          id: ws.id,
+                          name: ws.name,
+                          createdAt: ws.createdAt,
+                        })
+                      }
                     >
                       {ws.name}
                     </Button>
                   </li>
-                ))}
+                ))
+              ) : (
+                <li>
+                  <span>No workspaces found</span>
+                  <Button onClick={() => refetchWorkspaces()}>Retry</Button>
+                </li>
+              )}
             </ul>
           </li>
 
           {wsId && (
             <li className="dd-start">
-              <span>{teamName || "Select Team"}</span>
+              <span>{activeTeamName || "Select Team"}</span>
               <ul className="glass-bg">
-                {teams.length > 0 &&
-                  teams.map((team) => (
+                {loadingTeams ? (
+                  <li>
+                    <Loader />
+                    <span>Loading teams...</span>
+                  </li>
+                ) : teamsError ? (
+                  <li>
+                    <span>Error loading teams</span>
+                    <Button onClick={() => refetchTeams()}>Retry</Button>
+                  </li>
+                ) : (teamsData?.listMyTeams || []).length > 0 ? (
+                  (teamsData?.listMyTeams || []).map((team) => (
                     <li key={team.id}>
                       <Button
                         href={`/workspace/${wsId}/team/${team.id}`}
-                        onClick={() => addTeam(team)}
+                        onClick={() =>
+                          setActiveTeam({
+                            id: team.id,
+                            name: team.name,
+                            createdAt: team.createdAt,
+                            updatedAt: team.updatedAt,
+                          })
+                        }
                       >
                         {team.name}
                       </Button>
                     </li>
-                  ))}
+                  ))
+                ) : (
+                  <li>
+                    <span>No teams found</span>
+                    <Button onClick={() => refetchTeams()}>Retry</Button>
+                  </li>
+                )}
               </ul>
             </li>
           )}
