@@ -35,7 +35,7 @@ const LoginPage = ({ isAdmin = false }) => {
     resolver: zodResolver(validation),
   });
 
-  const { user, setUser }: any = useUser();
+  const { setUser }: any = useUser();
 
   const login = async (formdata: z.infer<typeof validation>) => {
     const response = await fetch(
