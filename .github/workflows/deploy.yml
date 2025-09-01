@@ -1,0 +1,81 @@
+name: Build and Deploy to Server
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint code
+        run: npm run lint
+
+      - name: Build project
+        run: npm run build
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create backup on server (optional)
+        run: |
+          echo "Creating backup on server..."
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+            if [ -d '${{ secrets.PROJECT_PATH }}' ]; then
+              timestamp=\$(date +%Y%m%d_%H%M%S)
+              mkdir -p ${{ secrets.PROJECT_PATH }}/../backups
+              cp -r ${{ secrets.PROJECT_PATH }} ${{ secrets.PROJECT_PATH }}/../backups/backup_\$timestamp
+              echo 'Backup created successfully'
+            else
+              echo 'No existing deployment found, skipping backup'
+            fi
+          "
+
+      - name: Deploy to server
+        run: |
+          echo "Deploying to server..."
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no" \
+            ./dist/ \
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.PROJECT_PATH }}
+
+      - name: Verify deployment
+        run: |
+          echo "Verifying deployment..."
+          ssh -i ~/.ssh/id_rsa -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+            echo '=== Deployment Contents ==='
+            ls -la ${{ secrets.PROJECT_PATH }}
+            echo ''
+            echo '=== Checking key files ==='
+            if [ -f '${{ secrets.PROJECT_PATH }}/index.html' ]; then
+              echo '✓ index.html exists'
+            else
+              echo '✗ index.html missing'
+              exit 1
+            fi
+            if [ -d '${{ secrets.PROJECT_PATH }}/assets' ]; then
+              echo '✓ assets directory exists'
+            else
+              echo '✗ assets directory missing'
+              exit 1
+            fi
+            echo '=== Deployment verification complete ==='
+          "
