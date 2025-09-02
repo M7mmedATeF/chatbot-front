@@ -1,4 +1,5 @@
 import type { Message } from "../../../types/room.entity";
+import dayjs from "dayjs";
 
 type AgentMessageProps = {
   message: Message;
@@ -9,10 +10,10 @@ const AgentMessage = ({ message }: AgentMessageProps) => {
     <div className="message-container">
       <div className="message agent-message">
         <p className="msg-content">
-          {message.contents.map((content) => content.text).join("")}
+          {message.Content.map((content) => content.text).join("")}
         </p>
         <p className="datetime">
-          <span>{message.createdAt.toLocaleTimeString()}</span>
+          <span>{dayjs(message.createdAt).format("hh:mm A")}</span>
         </p>
       </div>
     </div>

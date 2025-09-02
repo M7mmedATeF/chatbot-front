@@ -36,7 +36,7 @@ export type ToolCall = {
 export type Message = {
   id: number;
   role: MessageRole;
-  contents: Content[];
+  Content: Content[];
   createdAt: Date;
 };
 

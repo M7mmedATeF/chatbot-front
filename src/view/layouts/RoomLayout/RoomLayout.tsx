@@ -42,10 +42,10 @@ const RoomLayout = () => {
   React.useEffect(() => {
     if (
       numericRoomId &&
-      roomsData?.rooms &&
+      roomsData?.myRooms &&
       activeRoomId !== numericRoomId.toString()
     ) {
-      const room = roomsData.rooms.find((r) => r.id === numericRoomId);
+      const room = roomsData.myRooms.find((r) => r.id === numericRoomId);
       if (room) {
         setActiveRoom({
           id: room.id.toString(), // Convert to string for store
@@ -102,8 +102,8 @@ const RoomLayout = () => {
               <p>Error loading rooms</p>
               <Button onClick={() => refetchRooms()}>Retry</Button>
             </div>
-          ) : (roomsData?.rooms || []).length > 0 ? (
-            (roomsData?.rooms || []).map((room) => (
+          ) : (roomsData?.myRooms || []).length > 0 ? (
+            (roomsData?.myRooms || []).map((room) => (
               <div key={room.id}>
                 <NavLink
                   to={`room/${room.id}`}

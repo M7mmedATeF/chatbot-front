@@ -12,6 +12,8 @@ import Loader from "../../components/Loader/Loader";
 import { useRoom } from "../../../hooks/useRoom";
 import { useChat } from "../../../hooks/useChat";
 import type { ToolCall, MessageRole } from "../../../types/room.entity";
+import { v4 as uuidv4 } from "uuid";
+import { toast } from "react-toastify";
 
 const Conversation = () => {
   const { roomId } = useParams();
@@ -33,10 +35,10 @@ const Conversation = () => {
     sendMessage: sendChatMessage,
   } = useChat({
     roomId: numericRoomId,
-    onError: (error) => {
-      console.error("Chat error:", error);
-      // You could show a toast notification here
+    onError: (error: any) => {
+      toast.error("Chat error:", error?.message || "Something went wrong");
     },
+    dependencies: [roomId],
   });
 
   // Transform GraphQL messages to expected Message format
@@ -47,7 +49,7 @@ const Conversation = () => {
       id: msg.id,
       role: (msg.role === "AGENT" ? "MODEL" : msg.role) as MessageRole,
       createdAt: new Date(msg.createdAt),
-      contents: msg.Contents.map((content) => ({
+      Content: msg.Content.map((content) => ({
         id: content.id,
         text: content.text,
         toolRequest: content.toolRequest,
@@ -67,22 +69,9 @@ const Conversation = () => {
         ? "USER"
         : "SYSTEM") as MessageRole,
       createdAt: msg.timestamp,
-      contents: [
-        {
-          id: parseInt(msg.id.split("-")[1] || msg.id, 10),
-          createdAt: msg.timestamp,
-          text: msg.content,
-          toolRequest: null,
-          toolResponse: null,
-        },
-      ],
+      Content: msg.Content, // Already in the correct format
     }));
   }, [chatMessages]);
-
-  // Combine all messages
-  const allMessages = useMemo(() => {
-    return [...graphQLMessages, ...chatMessagesFormatted];
-  }, [graphQLMessages, chatMessagesFormatted]);
 
   const sendMessage = useCallback(() => {
     if (message.trim() && !isStreaming) {
@@ -101,7 +90,7 @@ const Conversation = () => {
               : roomData?.room?.name || "Conversation"}
           </p>
           <p className="token-usage">
-            {allMessages.length} messages
+            {graphQLMessages.length + chatMessagesFormatted.length} messages
             {isStreaming && (
               <span className="streaming-indicator"> • Streaming</span>
             )}
@@ -129,35 +118,79 @@ const Conversation = () => {
               <p>Error loading conversation</p>
               <Button onClick={() => window.location.reload()}>Retry</Button>
             </div>
-          ) : allMessages.length > 0 ? (
-            allMessages.map((msg) => {
-              if (msg.role === "USER") {
-                return <UserMessage key={msg.id} message={msg} />;
-              }
-
-              if (msg.role === "MODEL" || msg.role === "SYSTEM") {
-                return <AgentMessage key={msg.id} message={msg} />;
-              }
-
-              if (msg.role === "TOOL_REQUEST" || msg.role === "TOOL_RESPONSE") {
-                // Handle tool messages (only for GraphQL messages that have tool data)
-                const content = msg.contents[0];
-                if (
-                  content &&
-                  ("toolRequest" in content || "toolResponse" in content)
-                ) {
-                  const toolCall: ToolCall = {
-                    id: msg.id,
-                    name: content.toolRequest?.name || "Tool Call",
-                    input: content.toolRequest?.input || {},
-                    output: content.toolResponse?.output,
-                  };
-                  return <ToolCallMessage key={msg.id} toolCall={toolCall} />;
+          ) : graphQLMessages.length > 0 || chatMessagesFormatted.length > 0 ? (
+            <>
+              {/* Render GraphQL Messages */}
+              {graphQLMessages.map((msg, idx) => {
+                if (msg.role === "USER") {
+                  return (
+                    <UserMessage
+                      key={`gql_${idx}_${msg.id}_${uuidv4()}`}
+                      message={msg}
+                    />
+                  );
                 }
-              }
 
-              return null;
-            })
+                if (msg.role === "MODEL" || msg.role === "SYSTEM") {
+                  return (
+                    <AgentMessage
+                      key={`gql_${idx}_${msg.id}_${uuidv4()}`}
+                      message={msg}
+                    />
+                  );
+                }
+
+                if (
+                  msg.role === "TOOL_REQUEST" ||
+                  msg.role === "TOOL_RESPONSE"
+                ) {
+                  // Handle tool messages (only for GraphQL messages that have tool data)
+                  const content = msg.Content[0];
+                  if (
+                    content &&
+                    ("toolRequest" in content || "toolResponse" in content)
+                  ) {
+                    const toolCall: ToolCall = {
+                      id: parseInt(`gql_${idx}_${msg.id}_${uuidv4()}`, 10),
+                      name: content.toolRequest?.name || "Tool Call",
+                      input: content.toolRequest?.input || {},
+                      output: content.toolResponse?.output,
+                    };
+                    return (
+                      <ToolCallMessage
+                        key={`gql_${idx}_${msg.id}_${uuidv4()}`}
+                        toolCall={toolCall}
+                      />
+                    );
+                  }
+                }
+
+                return null;
+              })}
+
+              {/* Render useChat Messages */}
+              {chatMessagesFormatted.map((msg, idx) => {
+                if (msg.role === "USER") {
+                  return (
+                    <UserMessage
+                      key={`chat_${idx}_${msg.id}_${uuidv4()}`}
+                      message={msg}
+                    />
+                  );
+                }
+
+                if (msg.role === "MODEL" || msg.role === "SYSTEM") {
+                  return (
+                    <AgentMessage
+                      key={`chat_${idx}_${msg.id}_${uuidv4()}`}
+                      message={msg}
+                    />
+                  );
+                }
+
+                return null;
+              })}
+            </>
           ) : (
             <div className="empty-container">
               <p>No messages yet. Start the conversation!</p>
@@ -175,7 +208,6 @@ const Conversation = () => {
               : "Connecting..."
           }
           value={message}
-          disabled={isStreaming}
           onChange={(e: any) => setMessage(e)}
           onKeyDown={(e: any) => {
             if (e.key === "Enter" && e.ctrlKey && !isStreaming) {
@@ -190,7 +222,14 @@ const Conversation = () => {
           onClick={sendMessage}
           disabled={isStreaming || !message.trim()}
         >
-          {isStreaming ? "Sending..." : "Send"}
+          {isStreaming ? (
+            <>
+              <Loader />
+              <span>Sending...</span>
+            </>
+          ) : (
+            "Send"
+          )}
         </Button>
       </div>
     </section>

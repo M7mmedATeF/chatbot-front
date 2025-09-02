@@ -1,9 +1,13 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
+import Cookies from "js-cookie";
+// @ts-expect-error - no types
+import { fetchEventSource } from "@sentool/fetch-event-source";
+import type { Content } from "../types/room.entity";
 
 export interface ChatMessage {
   id: string;
   role: "USER" | "ASSISTANT" | "SYSTEM";
-  content: string;
+  Content: Content[];
   timestamp: Date;
   isStreaming?: boolean;
 }
@@ -12,168 +16,159 @@ interface UseChatOptions {
   roomId: number | undefined;
   onError?: (error: Error) => void;
   onMessage?: (message: ChatMessage) => void;
+  dependencies?: any[];
 }
 
-export const useChat = ({ roomId, onError, onMessage }: UseChatOptions) => {
+export const useChat = ({
+  roomId,
+  onError,
+  onMessage,
+  dependencies,
+}: UseChatOptions) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [newMessage, setNewMessage] = useState<ChatMessage | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
-  const [, setCurrentStreamingMessage] = useState<ChatMessage | null>(null);
 
-  const eventSourceRef = useRef<EventSource | null>(null);
-  const streamingMessageIdRef = useRef<string | null>(null);
+  const eventSourceRef = useRef<{ close: () => void } | null>(null);
+  const newMessageRef = useRef<ChatMessage | null>(null);
 
-  // Clean up EventSource on unmount or roomId change
+  // keep ref synced with state
+  useEffect(() => {
+    newMessageRef.current = newMessage;
+  }, [newMessage]);
+
+  // cleanup on unmount
   useEffect(() => {
     return () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-        eventSourceRef.current = null;
-      }
+      eventSourceRef.current?.close?.();
+      eventSourceRef.current = null;
     };
   }, [roomId]);
 
+  useEffect(() => {
+    setMessages([]);
+    setNewMessage(null);
+    setIsConnected(false);
+    setIsStreaming(false);
+    eventSourceRef.current = null;
+  }, [...(dependencies || [])]);
+
+  const finishStreaming = useCallback(() => {
+    const latest = newMessageRef.current;
+    console.log("Done streaming", latest); // always latest
+
+    setIsStreaming(false);
+    if (latest) {
+      setMessages((prev) => [...prev, { ...latest, isStreaming: false }]);
+      setNewMessage(null);
+      newMessageRef.current = null;
+    }
+  }, []);
+
   const sendMessage = useCallback(
-    (message: string) => {
-      if (!roomId || !message.trim()) return;
+    (text: string) => {
+      if (!roomId || !text.trim()) return;
 
-      // Close any existing connection
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-      }
-
+      eventSourceRef.current?.close?.();
       setIsStreaming(true);
 
-      // Add user message immediately
-      const userMessage: ChatMessage = {
+      // user message
+      const userMsg: ChatMessage = {
         id: `user-${Date.now()}`,
         role: "USER",
-        content: message.trim(),
+        Content: [
+          {
+            id: Date.now(),
+            text: text.trim(),
+            createdAt: new Date(),
+            toolRequest: null,
+            toolResponse: null,
+          },
+        ],
         timestamp: new Date(),
       };
+      setMessages((prev) => [...prev, userMsg]);
 
-      setMessages((prev) => [...prev, userMessage]);
-
-      // Create streaming assistant message
-      const assistantMessageId = `assistant-${Date.now()}`;
-      streamingMessageIdRef.current = assistantMessageId;
-
-      const streamingMessage: ChatMessage = {
-        id: assistantMessageId,
+      // assistant streaming message
+      const assistantMsg: ChatMessage = {
+        id: `assistant-${Date.now()}`,
         role: "ASSISTANT",
-        content: "",
+        Content: [
+          {
+            id: Date.now(),
+            text: "",
+            createdAt: new Date(),
+            toolRequest: null,
+            toolResponse: null,
+          },
+        ],
         timestamp: new Date(),
         isStreaming: true,
       };
-
-      setCurrentStreamingMessage(streamingMessage);
-      setMessages((prev) => [...prev, streamingMessage]);
+      setNewMessage(assistantMsg);
+      newMessageRef.current = assistantMsg;
 
       try {
         const apiUrl = import.meta.env.VITE_API_URL;
+        const token = Cookies.get("TOKEN");
+        const ws = JSON.parse(sessionStorage.getItem("workspace") || "{}");
+        const team = JSON.parse(sessionStorage.getItem("team") || "{}");
+        const room = JSON.parse(sessionStorage.getItem("room") || "{}");
+
         const url = `${apiUrl}/room/send-message?roomId=${roomId}&message=${encodeURIComponent(
-          message.trim()
+          text.trim()
         )}`;
 
-        const eventSource = new EventSource(url);
-        eventSourceRef.current = eventSource;
+        const eventSource = fetchEventSource(url, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            workspaceid: ws?.state?.id,
+            teamid: team?.state?.id,
+            roomid: room?.state?.id,
+          },
+          onopen: async (res: Response) => {
+            if (!res.ok) throw new Error(`Failed to connect: ${res.status}`);
+            setIsConnected(true);
+          },
+          onmessage: (event: any) => {
+            try {
+              const data = event.data;
+              if (!data) return;
 
-        eventSource.onopen = () => {
-          setIsConnected(true);
-        };
-
-        eventSource.onmessage = (event) => {
-          try {
-            const data = JSON.parse(event.data);
-
-            if (data.type === "chunk") {
-              // Handle streaming text chunks
-              setCurrentStreamingMessage((prev) => {
-                if (!prev) return null;
-
-                const updatedMessage = {
-                  ...prev,
-                  content: prev.content + data.content,
-                };
-
-                // Update the message in the messages array
-                setMessages((prevMessages) =>
-                  prevMessages.map((msg) =>
-                    msg.id === prev.id ? updatedMessage : msg
-                  )
-                );
-
-                return updatedMessage;
-              });
-
-              onMessage?.({
-                id: assistantMessageId,
-                role: "ASSISTANT",
-                content: data.content,
-                timestamp: new Date(),
-                isStreaming: true,
-              });
-            } else if (data.type === "done") {
-              // Handle completion
-              setCurrentStreamingMessage((prev) => {
-                if (!prev) return null;
-
-                const completedMessage = {
-                  ...prev,
-                  isStreaming: false,
-                };
-
-                // Update the message in the messages array
-                setMessages((prevMessages) =>
-                  prevMessages.map((msg) =>
-                    msg.id === prev.id ? completedMessage : msg
-                  )
-                );
-
-                return null;
-              });
-
-              setIsStreaming(false);
-              streamingMessageIdRef.current = null;
-
-              onMessage?.({
-                id: assistantMessageId,
-                role: "ASSISTANT",
-                content: data.content || "",
-                timestamp: new Date(),
-                isStreaming: false,
-              });
-            } else if (data.type === "error") {
-              // Handle errors
-              console.error("SSE Error:", data.error);
-              setIsStreaming(false);
-              setCurrentStreamingMessage(null);
-              streamingMessageIdRef.current = null;
-
-              onError?.(new Error(data.error || "Unknown error occurred"));
+              if (data.content?.length) {
+                setNewMessage((prev) => {
+                  if (!prev) return prev;
+                  const updated = {
+                    ...prev,
+                    Content: [...prev.Content, ...data.content],
+                  };
+                  newMessageRef.current = updated;
+                  return updated;
+                });
+                onMessage?.({ ...assistantMsg, isStreaming: true });
+              }
+            } catch {
+              finishStreaming();
+              onError?.(new Error("Failed to parse SSE data"));
             }
-          } catch (error) {
-            console.error("Failed to parse SSE message:", error);
-            onError?.(new Error("Failed to parse server response"));
-          }
-        };
+          },
+          done: () => {
+            finishStreaming();
+          },
+          onerror: (err: any) => {
+            console.error("fetchEventSource error:", err);
+            setIsConnected(false);
+            finishStreaming();
+            onError?.(new Error("Connection failed"));
+          },
+        });
 
-        eventSource.onerror = (error) => {
-          console.error("EventSource error:", error);
-          setIsConnected(false);
-          setIsStreaming(false);
-          setCurrentStreamingMessage(null);
-          streamingMessageIdRef.current = null;
-
-          onError?.(new Error("Connection failed"));
-        };
-      } catch (error) {
-        console.error("Failed to create EventSource:", error);
-        setIsStreaming(false);
-        setCurrentStreamingMessage(null);
-        streamingMessageIdRef.current = null;
-
-        onError?.(error as Error);
+        eventSourceRef.current = eventSource;
+      } catch (err) {
+        finishStreaming();
+        onError?.(err as Error);
       }
     },
     [roomId, onError, onMessage]
@@ -181,18 +176,14 @@ export const useChat = ({ roomId, onError, onMessage }: UseChatOptions) => {
 
   const clearMessages = useCallback(() => {
     setMessages([]);
-    setCurrentStreamingMessage(null);
-    streamingMessageIdRef.current = null;
-
-    // Close any active connection
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-      eventSourceRef.current = null;
-    }
+    setNewMessage(null);
+    newMessageRef.current = null;
+    eventSourceRef.current?.close?.();
+    eventSourceRef.current = null;
   }, []);
 
   return {
-    messages,
+    messages: [...messages, ...(newMessage ? [newMessage] : [])],
     isConnected,
     isStreaming,
     sendMessage,

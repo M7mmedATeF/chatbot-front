@@ -13,7 +13,7 @@ query Room($id: Int!) {
             id
             role
             createdAt
-            Contents {
+            Content {
                 id
                 text
                 toolRequest
@@ -22,6 +22,18 @@ query Room($id: Int!) {
                 updatedAt
             }
         }
+    }
+}
+`;
+
+// GraphQL query for rooms list
+export const MyRoomsQuery = `
+query MyRooms {
+    myRooms {
+        id
+        name
+        createdAt
+        updatedAt
     }
 }
 `;
@@ -45,7 +57,7 @@ export interface GraphQLMessage {
   id: number;
   role: string;
   createdAt: string;
-  Contents: GraphQLContent[];
+  Content: GraphQLContent[];
 }
 
 export interface GraphQLRoomDetails {
@@ -60,6 +72,18 @@ export interface RoomResponse {
   room: GraphQLRoomDetails;
 }
 
+// Types for MyRooms query response
+export interface GraphQLRoomBasic {
+  id: number;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MyRoomsResponse {
+  myRooms: GraphQLRoomBasic[];
+}
+
 // Query function using AxiosFetch
 export const fetchRoom = async (
   variables: RoomVariables
@@ -70,4 +94,13 @@ export const fetchRoom = async (
   });
 
   return response.data.data as RoomResponse;
+};
+
+// Query function for fetching rooms list
+export const fetchMyRooms = async (): Promise<MyRoomsResponse> => {
+  const response = await AxiosFetch.post<ApiResponse<MyRoomsResponse>>("", {
+    query: MyRoomsQuery,
+  });
+
+  return response.data.data as MyRoomsResponse;
 };
