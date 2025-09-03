@@ -1,5 +1,11 @@
 import { useEffect } from "react";
-import { Outlet, useLocation, useParams, useSearchParams } from "react-router";
+import {
+  Outlet,
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router";
 import "./WorkspaceLayout.css";
 import bot from "../../../assets/images/bot.png";
 import Button from "../../components/Button/Button";
@@ -20,12 +26,17 @@ import CreateTeam from "../../pages/team/Create/CreateTeam";
 import { useWorkspaces } from "../../../hooks/useWorkspaces";
 import { useTeams } from "../../../hooks/useTeams";
 import Loader from "../../components/Loader/Loader";
+import { useUser } from "../../../stores/user.store";
 
 const WorkspaceLayout = () => {
+  const nav = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { pathname } = useLocation();
   const { wsId, teamId } = useParams();
   const { updateTeamId, updateWsId } = useControllerContext();
+
+  const { user, removeUser }: any = useUser();
+
   // Shared workspaces query
   const {
     data: workspacesData,
@@ -214,8 +225,8 @@ const WorkspaceLayout = () => {
             </Button>
             <ul className="glass-bg">
               <li>
-                <Button>
-                  <AiOutlineUser /> <span> John Doe</span>
+                <Button href="/profile">
+                  <AiOutlineUser /> <span> {user.name}</span>
                 </Button>
               </li>
               <li>
@@ -224,7 +235,13 @@ const WorkspaceLayout = () => {
                 </Button>
               </li>
               <li>
-                <Button theme="danger">
+                <Button
+                  theme="danger"
+                  onClick={() => {
+                    removeUser();
+                    nav("/auth/login");
+                  }}
+                >
                   <AiOutlineLogout />
                   <span>Logout</span>
                 </Button>

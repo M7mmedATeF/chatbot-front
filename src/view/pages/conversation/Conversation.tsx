@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useParams } from "react-router";
 import Button from "../../components/Button/Button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -19,6 +19,8 @@ const Conversation = () => {
   const { roomId } = useParams();
   const numericRoomId = roomId ? parseInt(roomId, 10) : undefined;
   const [message, setMessage] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Fetch room data with messages
   const {
@@ -73,6 +75,34 @@ const Conversation = () => {
     }));
   }, [chatMessages]);
 
+  // Auto-scroll to bottom on new messages
+  useEffect(() => {
+    const scrollToBottom = () => {
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "end",
+        });
+      }
+    };
+
+    // If streaming, only scroll if user is already near bottom (within 100px)
+    if (isStreaming && messagesContainerRef.current) {
+      const container = messagesContainerRef.current;
+      const isNearBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight <
+        100;
+
+      if (isNearBottom) {
+        // Small delay to ensure DOM updates
+        setTimeout(scrollToBottom, 50);
+      }
+    } else {
+      // For new messages (not streaming), always scroll to bottom
+      setTimeout(scrollToBottom, 50);
+    }
+  }, [graphQLMessages.length, chatMessagesFormatted.length, isStreaming]);
+
   const sendMessage = useCallback(() => {
     if (message.trim() && !isStreaming) {
       sendChatMessage(message.trim());
@@ -107,7 +137,7 @@ const Conversation = () => {
         </div>
       </div>
       <div className="conversation-body">
-        <div className="messages-list">
+        <div className="messages-list" ref={messagesContainerRef}>
           {loadingRoom ? (
             <div className="loading-container">
               <Loader />
@@ -196,6 +226,8 @@ const Conversation = () => {
               <p>No messages yet. Start the conversation!</p>
             </div>
           )}
+          {/* Invisible element to scroll to */}
+          <div ref={messagesEndRef} />
         </div>
       </div>
       <div className="conversation-footer">
