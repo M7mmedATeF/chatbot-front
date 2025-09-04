@@ -9,7 +9,7 @@ const CreateTeam = ({ editMode = false }: { editMode?: boolean }) => {
     <section className="createWS">
       <form>
         <div className="headline">
-          <h3>Team Information</h3>
+          <h3>{editMode ? "Edit Team Information" : "Team Information"}</h3>
         </div>
         <div className="info-box form-box">
           <label htmlFor="image" className="image_input">

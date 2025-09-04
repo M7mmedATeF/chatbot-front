@@ -1,8 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  createRoomMutation,
-  type CreateRoomVariables,
-} from "../services/Mutations/Room.gql";
+import { createRoomMutation } from "../services/Mutations/Room.gql";
 import { toast } from "react-toastify";
 
 export const useCreateRoom = () => {

@@ -1,8 +1,6 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useParams } from "react-router";
 import Button from "../../components/Button/Button";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import "./Conversation.css";
 import Textarea from "../../components/Textarea/Textarea";
 import UserMessage from "../../components/UserMessage/UserMessage";

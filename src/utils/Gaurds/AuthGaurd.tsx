@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { useUser } from "../../stores/user.store";
 import Cookies from "js-cookie";
-import { Outlet, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { activeRoutes } from "../../router/ActiveRoutes";
 
 const AuthGaurd = ({ children }: { children: React.ReactNode }) => {
