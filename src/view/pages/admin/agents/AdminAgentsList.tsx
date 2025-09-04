@@ -10,7 +10,7 @@ import Modal from "../../../components/Modal/Modal";
 const AdminAgentsList = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm] = useState("");
 
   return (
     <section className="admin-agents section-page container">
@@ -36,7 +36,7 @@ const AdminAgentsList = () => {
         <Input
           placeholder="Search agents..."
           value={searchTerm}
-          onChange={setSearchTerm}
+          // onChange={setSearchTerm}
         />
       </div>
 
