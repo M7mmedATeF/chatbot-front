@@ -53,6 +53,7 @@ const LoginPage = ({ isAdmin = false }) => {
       } = response.data;
 
       // Set token to cookies
+      Cookies.set("USER", JSON.stringify(userData));
       Cookies.set("TOKEN", token);
 
       setUser(userData);

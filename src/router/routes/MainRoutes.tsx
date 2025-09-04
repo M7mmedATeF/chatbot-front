@@ -25,6 +25,7 @@ import UserProfile from "../../view/pages/profile/UserProfile/UserProfile";
 import AccountSettings from "../../view/pages/profile/AccountSettings/AccountSettings";
 import SecuritySettings from "../../view/pages/profile/SecuritySettings/SecuritySettings";
 import DashboardLayout from "../../view/layouts/DashboardLayout/DashboardLayout";
+import AuthGaurd from "../../utils/Gaurds/AuthGaurd";
 
 const MainRoutes = createBrowserRouter([
   {
@@ -51,7 +52,11 @@ const MainRoutes = createBrowserRouter([
   },
   {
     path: "/",
-    element: <WorkspaceLayout />,
+    element: (
+      <AuthGaurd>
+        <WorkspaceLayout />
+      </AuthGaurd>
+    ),
     children: [
       {
         index: true,

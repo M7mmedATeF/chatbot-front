@@ -21,8 +21,6 @@ const Image = ({
   }, [src]);
 
   const handleError = () => {
-    console.warn(`فشل في تحميل الصورة: ${src}`);
-
     if (!hasError && !isBrokenImgLoaded) {
       setHasError(true);
       setImgSrc(brokenIMG);
@@ -34,7 +32,6 @@ const Image = ({
   };
 
   const handleBrokenImgError = () => {
-    console.error("فشل في تحميل الصورة الاحتياطية أيضاً");
     setIsBrokenImgLoaded(false);
   };
 

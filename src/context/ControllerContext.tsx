@@ -19,12 +19,10 @@ export const ControllerProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     sessionStorage.setItem("teamId", teamId || "");
-    console.log("teamId", teamId || "");
   }, [teamId]);
 
   useEffect(() => {
     sessionStorage.setItem("wsId", wsId || "");
-    console.log("wsId", wsId || "");
   }, [wsId]);
 
   return (

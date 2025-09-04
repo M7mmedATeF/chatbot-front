@@ -3,6 +3,7 @@ import Cookies from "js-cookie";
 // @ts-expect-error - no types
 import { fetchEventSource } from "@sentool/fetch-event-source";
 import type { Content } from "../types/room.entity";
+import type { ToolCallsBetweenUserMessagesResponse } from "../services/Queries/Room.gql";
 
 export interface ChatMessage {
   id: string;
@@ -17,6 +18,7 @@ interface UseChatOptions {
   onError?: (error: Error) => void;
   onMessage?: (message: ChatMessage) => void;
   dependencies?: any[];
+  openMcpPanel: () => void;
 }
 
 export const useChat = ({
@@ -24,7 +26,12 @@ export const useChat = ({
   onError,
   onMessage,
   dependencies,
+  openMcpPanel,
 }: UseChatOptions) => {
+  const [cachedMessagesToolCalls, setCachedMessagesToolCalls] = useState<
+    Record<string, ToolCallsBetweenUserMessagesResponse[]>
+  >({});
+  const [toolData, setToolData] = useState<ChatMessage[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState<ChatMessage | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -32,11 +39,17 @@ export const useChat = ({
 
   const eventSourceRef = useRef<{ close: () => void } | null>(null);
   const newMessageRef = useRef<ChatMessage | null>(null);
+  const toolCallsRef = useRef<ChatMessage[]>(null);
 
   // keep ref synced with state
   useEffect(() => {
     newMessageRef.current = newMessage;
   }, [newMessage]);
+
+  // keep ref synced with toolData
+  useEffect(() => {
+    toolCallsRef.current = toolData;
+  }, [toolData]);
 
   // cleanup on unmount
   useEffect(() => {
@@ -56,7 +69,6 @@ export const useChat = ({
 
   const finishStreaming = useCallback(() => {
     const latest = newMessageRef.current;
-    console.log("Done streaming", latest); // always latest
 
     setIsStreaming(false);
     if (latest) {
@@ -131,22 +143,35 @@ export const useChat = ({
           onopen: async (res: Response) => {
             if (!res.ok) throw new Error(`Failed to connect: ${res.status}`);
             setIsConnected(true);
+            setToolData([]);
           },
           onmessage: (event: any) => {
             try {
               const data = event.data;
+              console.log(data, event);
+
               if (!data) return;
 
               if (data.content?.length) {
-                setNewMessage((prev) => {
-                  if (!prev) return prev;
-                  const updated = {
-                    ...prev,
-                    Content: [...prev.Content, ...data.content],
-                  };
-                  newMessageRef.current = updated;
-                  return updated;
-                });
+                if (
+                  data.content[0].toolRequest ||
+                  data.content[0].toolResponse
+                ) {
+                  if (toolData.length == 0) {
+                    openMcpPanel();
+                  }
+                  setToolData((prev) => [...prev, data]);
+                } else {
+                  setNewMessage((prev) => {
+                    if (!prev) return prev;
+                    const updated = {
+                      ...prev,
+                      Content: [...prev.Content, ...data.content],
+                    };
+                    newMessageRef.current = updated;
+                    return updated;
+                  });
+                }
                 onMessage?.({ ...assistantMsg, isStreaming: true });
               }
             } catch {
@@ -156,6 +181,12 @@ export const useChat = ({
           },
           done: () => {
             finishStreaming();
+            setCachedMessagesToolCalls((prev) => {
+              const newCachedMessagesToolCalls = { ...prev };
+              newCachedMessagesToolCalls[assistantMsg.id] =
+                toolCallsRef.current as any;
+              return newCachedMessagesToolCalls;
+            });
           },
           onerror: (err: any) => {
             console.error("fetchEventSource error:", err);
@@ -184,9 +215,11 @@ export const useChat = ({
 
   return {
     messages: [...messages, ...(newMessage ? [newMessage] : [])],
+    toolData,
     isConnected,
     isStreaming,
     sendMessage,
     clearMessages,
+    cachedMessagesToolCalls,
   };
 };

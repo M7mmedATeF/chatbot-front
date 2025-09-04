@@ -5,8 +5,6 @@ import Button from "../../../components/Button/Button";
 import Image from "../../../components/Image/Image";
 
 const CreateTeam = ({ editMode = false }: { editMode?: boolean }) => {
-  console.log(editMode);
-
   return (
     <section className="createWS">
       <form>

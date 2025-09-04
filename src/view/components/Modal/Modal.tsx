@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import React from "react";
 import style from "./Modal.module.css";
 import Button from "../Button/Button";
+import Loader from "../Loader/Loader";
 
 type modalProps = {
   children: React.ReactNode;
@@ -13,6 +14,7 @@ type modalProps = {
   onSave?: () => void;
   onClose: () => void;
   onReset?: () => void;
+  isLoading?: boolean;
 };
 
 const Modal = ({
@@ -24,6 +26,7 @@ const Modal = ({
   onReset,
   onClose,
   size = "sm",
+  isLoading = false,
 }: modalProps) => {
   return (
     <div
@@ -49,8 +52,8 @@ const Modal = ({
           <div className={style.modalFooter}>
             {onReset && <Button onClick={onReset}>Reset</Button>}
             {onSave && (
-              <Button theme="primary" onClick={onSave}>
-                Save
+              <Button theme="primary" onClick={onSave} disabled={isLoading}>
+                {isLoading ? <Loader /> : "Save"}
               </Button>
             )}
           </div>

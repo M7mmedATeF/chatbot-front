@@ -226,14 +226,14 @@ const WorkspaceLayout = () => {
             <ul className="glass-bg">
               <li>
                 <Button href="/profile">
-                  <AiOutlineUser /> <span> {user.name}</span>
+                  <AiOutlineUser /> <span> {user?.name}</span>
                 </Button>
               </li>
-              <li>
+              {/* <li>
                 <Button>
                   <AiOutlineSetting /> <span> Settings</span>
                 </Button>
-              </li>
+              </li> */}
               <li>
                 <Button
                   theme="danger"

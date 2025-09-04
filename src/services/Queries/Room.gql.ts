@@ -104,3 +104,44 @@ export const fetchMyRooms = async (): Promise<MyRoomsResponse> => {
 
   return response.data.data as MyRoomsResponse;
 };
+
+// GraphQL query for tool calls between user messages
+export const ToolCallsBetweenUserMessagesQuery = `
+query GetToolCallsBetweenUserMessages($messageId: Int!) {
+    getToolCallsBetweenUserMessages(messageId: $messageId) {
+        id
+        role
+        createdAt
+        Content {
+            id
+            toolRequest
+            toolResponse
+            createdAt
+            updatedAt
+        }
+    }
+}
+`;
+
+// Types for tool calls between user messages query
+export interface ToolCallsBetweenUserMessagesVariables {
+  messageId: number;
+}
+
+export interface ToolCallsBetweenUserMessagesResponse {
+  getToolCallsBetweenUserMessages: GraphQLMessage[];
+}
+
+// Query function for tool calls between user messages
+export const fetchToolCallsBetweenUserMessages = async (
+  variables: ToolCallsBetweenUserMessagesVariables
+): Promise<ToolCallsBetweenUserMessagesResponse> => {
+  const response = await AxiosFetch.post<
+    ApiResponse<ToolCallsBetweenUserMessagesResponse>
+  >("", {
+    query: ToolCallsBetweenUserMessagesQuery,
+    variables,
+  });
+
+  return response.data.data as ToolCallsBetweenUserMessagesResponse;
+};

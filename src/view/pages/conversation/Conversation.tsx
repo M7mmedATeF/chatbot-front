@@ -2,20 +2,26 @@ import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useParams } from "react-router";
 import Button from "../../components/Button/Button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars, faSearch } from "@fortawesome/free-solid-svg-icons";
+import { faSearch } from "@fortawesome/free-solid-svg-icons";
 import "./Conversation.css";
 import Textarea from "../../components/Textarea/Textarea";
 import UserMessage from "../../components/UserMessage/UserMessage";
 import AgentMessage from "../../components/AgentMessage/AgentMessage";
-import ToolCallMessage from "../../components/ToolCallMessage/ToolCallMessage";
 import Loader from "../../components/Loader/Loader";
 import { useRoom } from "../../../hooks/useRoom";
 import { useChat } from "../../../hooks/useChat";
-import type { ToolCall, MessageRole } from "../../../types/room.entity";
+import { useToolCallsBetweenMessages } from "../../../hooks/useToolCalls";
+import type { MessageRole } from "../../../types/room.entity";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
+import { AiOutlineArrowLeft } from "react-icons/ai";
 
 const Conversation = () => {
+  const [showMCP, setShowMCP] = useState(false);
+  const [showLiveCalls, setShowLiveCalls] = useState(false);
+  const [selectedMessageId, setSelectedMessageId] = useState<
+    number | string | null
+  >(null);
   const { roomId } = useParams();
   const numericRoomId = roomId ? parseInt(roomId, 10) : undefined;
   const [message, setMessage] = useState("");
@@ -32,16 +38,29 @@ const Conversation = () => {
   // Chat hook for real-time messaging
   const {
     messages: chatMessages,
+    toolData,
     isConnected,
     isStreaming,
     sendMessage: sendChatMessage,
+    cachedMessagesToolCalls,
   } = useChat({
     roomId: numericRoomId,
     onError: (error: any) => {
       toast.error("Chat error:", error?.message || "Something went wrong");
     },
+    openMcpPanel: () => {
+      setShowLiveCalls(true);
+      setShowMCP(true);
+    },
     dependencies: [roomId],
   });
+
+  // Fetch tool calls between user messages
+  const {
+    data: toolCallsData,
+    isLoading: loadingToolCalls,
+    error: toolCallsError,
+  } = useToolCallsBetweenMessages(selectedMessageId, cachedMessagesToolCalls);
 
   // Transform GraphQL messages to expected Message format
   const graphQLMessages = useMemo(() => {
@@ -74,6 +93,23 @@ const Conversation = () => {
       Content: msg.Content, // Already in the correct format
     }));
   }, [chatMessages]);
+
+  // Combine tool data sources: use streaming toolData if available, otherwise use fetched data
+  const displayToolData = useMemo(() => {
+    if (showLiveCalls && toolData.length > 0) {
+      // Use streaming toolData
+      return toolData.map((toolMsg) => ({
+        id: uuidv4(),
+        role: toolMsg.role,
+        createdAt: new Date().toISOString(),
+        Content: (toolMsg as any).content,
+      }));
+    } else if (toolCallsData?.getToolCallsBetweenUserMessages) {
+      // Use fetched data for completed messages
+      return toolCallsData.getToolCallsBetweenUserMessages;
+    }
+    return [];
+  }, [toolData, toolCallsData, showLiveCalls]);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -110,124 +146,161 @@ const Conversation = () => {
     }
   }, [message, isStreaming, sendChatMessage]);
 
+  const showMessageProcessingCalls = (messageId: number | string) => {
+    setShowLiveCalls(false);
+    setSelectedMessageId(messageId);
+    setShowMCP(true);
+    // If message is streaming, use toolData directly (no DB fetch needed)
+    // If message is not streaming, selectedMessageId will trigger the DB fetch via useToolCallsBetweenMessages
+  };
+
   return (
     <section className="conversation-page">
       <div className="conversation-header glass-bg">
-        <div>
-          <p className="name">
-            {loadingRoom
-              ? "Loading..."
-              : roomData?.room?.name || "Conversation"}
-          </p>
-          <p className="token-usage">
-            {graphQLMessages.length + chatMessagesFormatted.length} messages
-            {isStreaming && (
-              <span className="streaming-indicator"> • Streaming</span>
-            )}
-          </p>
-        </div>
-
-        <div className="conversation-actions">
-          <Button>
-            <FontAwesomeIcon icon={faSearch} />
-          </Button>
-          <Button>
-            <FontAwesomeIcon icon={faBars} />
-          </Button>
+        <div className="user-actions">
+          {showMCP && (
+            <Button onClick={() => setShowMCP(false)}>
+              <AiOutlineArrowLeft />
+            </Button>
+          )}
+          <div>
+            <p className="name">
+              {loadingRoom
+                ? "Loading..."
+                : roomData?.room?.name || "Conversation"}
+            </p>
+            <p className="token-usage">
+              {graphQLMessages.length + chatMessagesFormatted.length} messages
+              {isStreaming && (
+                <span className="streaming-indicator"> • Streaming</span>
+              )}
+            </p>
+          </div>
         </div>
       </div>
-      <div className="conversation-body">
-        <div className="messages-list" ref={messagesContainerRef}>
-          {loadingRoom ? (
-            <div className="loading-container">
-              <Loader />
-              <p>Loading conversation...</p>
+      <div className={`conversation-body-layout ${showMCP ? "show-mcp" : ""}`}>
+        <div className="mcp-calls-container">
+          <div className="glass-bg mcp-calls">
+            <div className="mcp-header">
+              <h3>Agent Actions</h3>
+              {showLiveCalls && isStreaming && (
+                <span className="streaming-indicator">🔴 Live</span>
+              )}
+              {toolCallsError && !isStreaming && (
+                <p className="error-text">Error loading tool calls</p>
+              )}
             </div>
-          ) : roomError ? (
-            <div className="error-container">
-              <p>Error loading conversation</p>
-              <Button onClick={() => window.location.reload()}>Retry</Button>
+            <div className="mcp-content">
+              {loadingToolCalls && !showLiveCalls ? (
+                <div className="loading-container">
+                  <Loader />
+                  <p>Loading agent actions...</p>
+                </div>
+              ) : displayToolData.length > 0 ? (
+                <div className="tool-calls-list">
+                  {displayToolData.map((toolCall, idx) => (
+                    <div
+                      key={`tool-call-${idx}-${toolCall.id}`}
+                      className="tool-call-item"
+                    >
+                      <div className="tool-call-header">
+                        <span className="tool-role">{toolCall.role}</span>
+                        <span className="tool-time">
+                          {new Date(toolCall.createdAt).toLocaleTimeString()}
+                        </span>
+                      </div>
+                      {toolCall.Content.map(
+                        (content: any, contentIdx: number) => (
+                          <div
+                            key={`content-${contentIdx}-${content.id}`}
+                            className="tool-content"
+                          >
+                            {content.toolRequest && (
+                              <div className="tool-request">
+                                <h4>Tool Request</h4>
+                                <pre>
+                                  {JSON.stringify(content.toolRequest, null, 2)}
+                                </pre>
+                              </div>
+                            )}
+                            {content.toolResponse && (
+                              <div className="tool-response">
+                                <h4>Tool Response</h4>
+                                <pre>
+                                  {JSON.stringify(
+                                    content.toolResponse,
+                                    null,
+                                    2
+                                  )}
+                                </pre>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="no-tool-calls">
+                  <p>No agent actions found for this message</p>
+                </div>
+              )}
             </div>
-          ) : graphQLMessages.length > 0 || chatMessagesFormatted.length > 0 ? (
-            <>
-              {/* Render GraphQL Messages */}
-              {graphQLMessages.map((msg, idx) => {
-                if (msg.role === "USER") {
-                  return (
-                    <UserMessage
-                      key={`gql_${idx}_${msg.id}_${uuidv4()}`}
-                      message={msg}
-                    />
-                  );
-                }
+          </div>
+        </div>
 
-                if (msg.role === "MODEL" || msg.role === "SYSTEM") {
-                  return (
-                    <AgentMessage
-                      key={`gql_${idx}_${msg.id}_${uuidv4()}`}
-                      message={msg}
-                    />
-                  );
-                }
+        <div className="conversation-body">
+          <div className="messages-list" ref={messagesContainerRef}>
+            {loadingRoom ? (
+              <div className="loading-container">
+                <Loader />
+                <p>Loading conversation...</p>
+              </div>
+            ) : roomError ? (
+              <div className="error-container">
+                <p>Error loading conversation</p>
+                <Button onClick={() => window.location.reload()}>Retry</Button>
+              </div>
+            ) : graphQLMessages.length > 0 ||
+              chatMessagesFormatted.length > 0 ? (
+              <>
+                {/* Render useChat Messages */}
+                {[...graphQLMessages, ...chatMessagesFormatted].map(
+                  (msg, idx) => {
+                    if (msg.role === "USER") {
+                      return (
+                        <UserMessage
+                          key={`chat_${idx}_${msg.id}_${uuidv4()}`}
+                          message={msg}
+                        />
+                      );
+                    }
 
-                if (
-                  msg.role === "TOOL_REQUEST" ||
-                  msg.role === "TOOL_RESPONSE"
-                ) {
-                  // Handle tool messages (only for GraphQL messages that have tool data)
-                  const content = msg.Content[0];
-                  if (
-                    content &&
-                    ("toolRequest" in content || "toolResponse" in content)
-                  ) {
-                    const toolCall: ToolCall = {
-                      id: parseInt(`gql_${idx}_${msg.id}_${uuidv4()}`, 10),
-                      name: content.toolRequest?.name || "Tool Call",
-                      input: content.toolRequest?.input || {},
-                      output: content.toolResponse?.output,
-                    };
-                    return (
-                      <ToolCallMessage
-                        key={`gql_${idx}_${msg.id}_${uuidv4()}`}
-                        toolCall={toolCall}
-                      />
-                    );
+                    if (msg.role === "MODEL" || msg.role === "SYSTEM") {
+                      return (
+                        <AgentMessage
+                          key={msg.id}
+                          message={msg}
+                          OnOpenMessages={() => {
+                            showMessageProcessingCalls(msg.id);
+                          }}
+                        />
+                      );
+                    }
+
+                    return null;
                   }
-                }
-
-                return null;
-              })}
-
-              {/* Render useChat Messages */}
-              {chatMessagesFormatted.map((msg, idx) => {
-                if (msg.role === "USER") {
-                  return (
-                    <UserMessage
-                      key={`chat_${idx}_${msg.id}_${uuidv4()}`}
-                      message={msg}
-                    />
-                  );
-                }
-
-                if (msg.role === "MODEL" || msg.role === "SYSTEM") {
-                  return (
-                    <AgentMessage
-                      key={`chat_${idx}_${msg.id}_${uuidv4()}`}
-                      message={msg}
-                    />
-                  );
-                }
-
-                return null;
-              })}
-            </>
-          ) : (
-            <div className="empty-container">
-              <p>No messages yet. Start the conversation!</p>
-            </div>
-          )}
-          {/* Invisible element to scroll to */}
-          <div ref={messagesEndRef} />
+                )}
+              </>
+            ) : (
+              <div className="empty-container">
+                <p>No messages yet. Start the conversation!</p>
+              </div>
+            )}
+            {/* Invisible element to scroll to */}
+            <div ref={messagesEndRef} />
+          </div>
         </div>
       </div>
       <div className="conversation-footer">

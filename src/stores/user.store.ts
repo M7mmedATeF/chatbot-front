@@ -1,13 +1,13 @@
 import { create } from "zustand";
 import type { LoginResponse } from "../services/Mutations/Auth.gql";
+import Cookies from "js-cookie";
 
 export const useUser = create((set) => ({
-  user: {
-    id: 0,
-    name: "",
-    email: "",
-    createdAt: "",
-  },
+  user: null,
   setUser: (user: LoginResponse) => set({ user }),
-  removeUser: () => set({ user: null }),
+  removeUser: () => {
+    Cookies.remove("USER");
+    Cookies.remove("TOKEN");
+    set({ user: null });
+  },
 }));
