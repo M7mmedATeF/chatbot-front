@@ -34,6 +34,7 @@ const Button = ({
       onClick={onClick}
       {...(props as NavLinkProps)}
       to={href}
+      end
     >
       {children}
     </NavLink>

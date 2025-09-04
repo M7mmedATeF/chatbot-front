@@ -329,6 +329,12 @@
                 }
               }
 
+              .tool-error {
+                background-color: var(--danger-color);
+                color: var(--text-color);
+                padding: 0.5rem;
+              }
+
               .tool-request h4 {
                 color: #ff6b6b;
               }

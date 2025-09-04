@@ -1,0 +1,57 @@
+import {
+  AiOutlineDashboard,
+  AiOutlineRobot,
+  AiOutlineSetting,
+} from "react-icons/ai";
+import Button from "../../../components/Button/Button";
+import "./Dashboard.css";
+
+const Dashboard = () => {
+  return (
+    <>
+      <div className="select-dashboard-area">
+        <div className="dashboard-welcome">
+          <h1>Admin Dashboard</h1>
+          <p>Manage your MCP chatbot system</p>
+        </div>
+
+        <div className="dashboard-cards">
+          <div className="dashboard-card">
+            <div className="card-icon">
+              <AiOutlineRobot size={32} />
+            </div>
+            <h3>Agents</h3>
+            <p>Manage and configure your AI agents</p>
+            <Button href="/admin/agents" theme="primary">
+              View Agents
+            </Button>
+          </div>
+
+          <div className="dashboard-card">
+            <div className="card-icon">
+              <AiOutlineDashboard size={32} />
+            </div>
+            <h3>Analytics</h3>
+            <p>View system analytics and usage stats</p>
+            <Button href="/admin/analytics" theme="primary">
+              View Analytics
+            </Button>
+          </div>
+
+          <div className="dashboard-card">
+            <div className="card-icon">
+              <AiOutlineSetting size={32} />
+            </div>
+            <h3>Settings</h3>
+            <p>Configure system settings and preferences</p>
+            <Button href="/admin/settings" theme="primary">
+              System Settings
+            </Button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default Dashboard;

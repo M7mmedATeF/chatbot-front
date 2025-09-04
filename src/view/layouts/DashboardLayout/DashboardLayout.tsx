@@ -2,50 +2,57 @@ import { Link, Outlet } from "react-router";
 import "./DashboardLayout.css";
 import Button from "../../components/Button/Button";
 import {
-  AiOutlineArrowLeft,
   AiOutlineDashboard,
+  AiOutlineDoubleLeft,
+  AiOutlineLogout,
   AiOutlineRobot,
   AiOutlineSetting,
 } from "react-icons/ai";
+import { useState } from "react";
 
 const DashboardLayout = () => {
+  const [collapsed, setCollapsed] = useState(false);
   return (
-    <section className="dashboard-layout">
+    <section className={`dashboard-layout ${collapsed ? "collapsed" : ""}`}>
       <nav className="side-nav glass-bg">
-        <Link to="/">
-          <h1>Mcp-ChatBot</h1>
+        <Link to="/" className="title-link">
+          <h1>Mcp</h1>
         </Link>
 
         <ul>
           <li>
-            <Button href="/">
+            <Button href="/admin/">
               <AiOutlineDashboard />
-              Dashboard
+              <span>Dashboard</span>
             </Button>
           </li>
           <li>
-            <Button href="/agents">
+            <Button href="/admin/agents">
               <AiOutlineRobot />
-              Agents
+              <span>Agents</span>
             </Button>
           </li>
           <li>
-            <Button href="/settings">
+            <Button href="/admin/settings">
               <AiOutlineSetting />
-              Settings
+              <span>Settings</span>
             </Button>
           </li>
+        </ul>
+
+        <ul>
           <li>
-            <Button href="/logout" theme="danger">
-              Logout
+            <Button theme="danger">
+              <AiOutlineLogout />
+              <span>Logout</span>
             </Button>
           </li>
         </ul>
       </nav>
       <main className="glass-bg">
         <header className="glass-bg">
-          <Button>
-            <AiOutlineArrowLeft />
+          <Button onClick={() => setCollapsed(!collapsed)}>
+            <AiOutlineDoubleLeft />
           </Button>
         </header>
         <Outlet />

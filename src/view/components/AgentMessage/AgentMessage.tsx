@@ -13,9 +13,11 @@ type AgentMessageProps = {
 
 const AgentMessage = ({ message, OnOpenMessages }: AgentMessageProps) => {
   const messageText = useMemo(() => {
-    return message.Content.map((content) => content.text)
-      .join("")
-      .trim();
+    return (
+      message?.Content?.map((content) => content.text)
+        .join("")
+        .trim() || ""
+    );
   }, [message.Content]);
 
   return (

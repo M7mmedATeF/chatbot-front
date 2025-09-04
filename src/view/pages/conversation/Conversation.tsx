@@ -13,6 +13,7 @@ import type { MessageRole } from "../../../types/room.entity";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
 import { AiOutlineArrowLeft } from "react-icons/ai";
+import dayjs from "dayjs";
 
 const Conversation = () => {
   const [showMCP, setShowMCP] = useState(false);
@@ -99,7 +100,7 @@ const Conversation = () => {
       return toolData.map((toolMsg) => ({
         id: uuidv4(),
         role: toolMsg.role,
-        createdAt: new Date().toISOString(),
+        createdAt: dayjs(toolMsg.timestamp || new Date()).format("hh:mm A"),
         Content: (toolMsg as any).content,
       }));
     } else if (toolCallsData?.getToolCallsBetweenUserMessages) {
@@ -203,11 +204,9 @@ const Conversation = () => {
                     >
                       <div className="tool-call-header">
                         <span className="tool-role">{toolCall.role}</span>
-                        <span className="tool-time">
-                          {new Date(toolCall.createdAt).toLocaleTimeString()}
-                        </span>
+                        <span className="tool-time">{toolCall.createdAt}</span>
                       </div>
-                      {toolCall.Content.map(
+                      {(toolCall.Content || (toolCall as any).content).map(
                         (content: any, contentIdx: number) => (
                           <div
                             key={`content-${contentIdx}-${content.id}`}
@@ -231,6 +230,12 @@ const Conversation = () => {
                                     2
                                   )}
                                 </pre>
+                              </div>
+                            )}
+                            {content.text && (
+                              <div className="tool-error">
+                                <h4>Error</h4>
+                                <pre>{content.text}</pre>
                               </div>
                             )}
                           </div>

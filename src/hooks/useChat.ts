@@ -7,7 +7,7 @@ import type { ToolCallsBetweenUserMessagesResponse } from "../services/Queries/R
 
 export interface ChatMessage {
   id: string;
-  role: "USER" | "ASSISTANT" | "SYSTEM";
+  role: "USER" | "ASSISTANT" | "SYSTEM" | "ERROR";
   Content: Content[];
   timestamp: Date;
   isStreaming?: boolean;
@@ -160,7 +160,10 @@ export const useChat = ({
                   if (toolData.length == 0) {
                     openMcpPanel();
                   }
-                  setToolData((prev) => [...prev, data]);
+                  setToolData((prev) => [
+                    ...prev,
+                    { ...data, timestamp: new Date() },
+                  ]);
                 } else {
                   setNewMessage((prev) => {
                     if (!prev) return prev;
@@ -173,6 +176,46 @@ export const useChat = ({
                   });
                 }
                 onMessage?.({ ...assistantMsg, isStreaming: true });
+              } else if (typeof data === "string") {
+                setNewMessage(null);
+                setMessages((prev) => [
+                  ...prev,
+                  {
+                    id: `error-${Date.now()}`,
+                    role: "ERROR",
+                    timestamp: new Date(),
+                    content: [
+                      {
+                        id: Date.now(),
+                        text:
+                          typeof data === "string"
+                            ? data
+                            : JSON.stringify(data),
+                        createdAt: new Date(),
+                      },
+                    ],
+                  } as any,
+                ]);
+                setToolData((prev) => [
+                  ...prev,
+                  {
+                    id: `error-${Date.now()}`,
+                    role: "ERROR",
+                    timestamp: new Date(),
+                    content: [
+                      {
+                        id: Date.now(),
+                        text:
+                          typeof data === "string"
+                            ? data
+                            : JSON.stringify(data),
+                        createdAt: new Date(),
+                      },
+                    ],
+                  } as any,
+                ]);
+
+                throw new Error(data);
               }
             } catch {
               finishStreaming();

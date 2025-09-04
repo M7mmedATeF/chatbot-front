@@ -1,5 +1,4 @@
 import { createBrowserRouter } from "react-router";
-// import AuthLayout from "../../view/layouts/AuthLayout/AuthLayout";
 import Test from "../../view/pages/Test";
 import LoginPage from "../../view/pages/auth/login/LoginPage";
 import RegisterPage from "../../view/pages/auth/Register/RegisterPage";
@@ -26,6 +25,8 @@ import AccountSettings from "../../view/pages/profile/AccountSettings/AccountSet
 import SecuritySettings from "../../view/pages/profile/SecuritySettings/SecuritySettings";
 import DashboardLayout from "../../view/layouts/DashboardLayout/DashboardLayout";
 import AuthGaurd from "../../utils/Gaurds/AuthGaurd";
+import Dashboard from "../../view/pages/admin/dashboard/Dashboard";
+import AdminAgentsList from "../../view/pages/admin/agents/AdminAgentsList";
 
 const MainRoutes = createBrowserRouter([
   {
@@ -183,6 +184,16 @@ const MainRoutes = createBrowserRouter([
   {
     path: "admin",
     element: <DashboardLayout />,
+    children: [
+      {
+        index: true,
+        element: <Dashboard />,
+      },
+      {
+        path: "agents",
+        element: <AdminAgentsList />,
+      },
+    ],
   },
   {
     path: "/test",
