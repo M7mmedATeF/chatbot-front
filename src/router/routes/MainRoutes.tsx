@@ -26,7 +26,7 @@ import SecuritySettings from "../../view/pages/profile/SecuritySettings/Security
 import DashboardLayout from "../../view/layouts/DashboardLayout/DashboardLayout";
 import AuthGaurd from "../../utils/Gaurds/AuthGaurd";
 import Dashboard from "../../view/pages/admin/dashboard/Dashboard";
-import AdminAgentsList from "../../view/pages/admin/agents/AdminAgentsList";
+import AdminMCPsList from "../../view/pages/admin/mcps/AdminMCPsList";
 
 const MainRoutes = createBrowserRouter([
   {
@@ -190,8 +190,8 @@ const MainRoutes = createBrowserRouter([
         element: <Dashboard />,
       },
       {
-        path: "agents",
-        element: <AdminAgentsList />,
+        path: "mcps",
+        element: <AdminMCPsList />,
       },
     ],
   },

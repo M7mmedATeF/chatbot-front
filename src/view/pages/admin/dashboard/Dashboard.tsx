@@ -1,10 +1,7 @@
-import {
-  AiOutlineDashboard,
-  AiOutlineRobot,
-  AiOutlineSetting,
-} from "react-icons/ai";
+import { AiOutlineDashboard, AiOutlineSetting } from "react-icons/ai";
 import Button from "../../../components/Button/Button";
 import "./Dashboard.css";
+import { PiToolboxLight } from "react-icons/pi";
 
 const Dashboard = () => {
   return (
@@ -18,12 +15,12 @@ const Dashboard = () => {
         <div className="dashboard-cards">
           <div className="dashboard-card">
             <div className="card-icon">
-              <AiOutlineRobot size={32} />
+              <PiToolboxLight size={32} />
             </div>
-            <h3>Agents</h3>
-            <p>Manage and configure your AI agents</p>
-            <Button href="/admin/agents" theme="primary">
-              View Agents
+            <h3>MCPs</h3>
+            <p>Manage and configure system MCP Tools</p>
+            <Button href="/admin/mcps" theme="primary">
+              View MCPs
             </Button>
           </div>
 

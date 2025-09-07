@@ -3,7 +3,7 @@ import styles from "./ImageInput.module.css";
 import Image from "../Image/Image";
 
 type ImageInputProps = {
-  preview: string;
+  preview?: string;
   value?: File[];
   onChange?: (value: string) => void;
 } & React.HTMLAttributes<HTMLInputElement>;

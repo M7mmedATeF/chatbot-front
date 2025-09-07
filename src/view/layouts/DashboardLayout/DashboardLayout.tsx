@@ -5,10 +5,10 @@ import {
   AiOutlineDashboard,
   AiOutlineDoubleLeft,
   AiOutlineLogout,
-  AiOutlineRobot,
   AiOutlineSetting,
 } from "react-icons/ai";
 import { useState } from "react";
+import { PiToolboxLight } from "react-icons/pi";
 
 const DashboardLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -27,9 +27,9 @@ const DashboardLayout = () => {
             </Button>
           </li>
           <li>
-            <Button href="/admin/agents">
-              <AiOutlineRobot />
-              <span>Agents</span>
+            <Button href="/admin/mcps">
+              <PiToolboxLight />
+              <span>MCPs</span>
             </Button>
           </li>
           <li>
