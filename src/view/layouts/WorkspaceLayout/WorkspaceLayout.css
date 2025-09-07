@@ -78,3 +78,9 @@
     translate: 0 -30px;
   }
 }
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}

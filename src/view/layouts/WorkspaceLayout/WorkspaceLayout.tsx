@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Outlet,
   useLocation,
@@ -6,6 +6,7 @@ import {
   useParams,
   useSearchParams,
 } from "react-router";
+import { useForm, Controller } from "react-hook-form";
 import "./WorkspaceLayout.css";
 import bot from "../../../assets/images/bot.png";
 import Button from "../../components/Button/Button";
@@ -27,6 +28,10 @@ import { useWorkspaces } from "../../../hooks/useWorkspaces";
 import { useTeams } from "../../../hooks/useTeams";
 import Loader from "../../components/Loader/Loader";
 import { useUser } from "../../../stores/user.store";
+import Input from "../../components/Input/Input";
+import { useCreateConfig } from "../../../hooks/useCreateConfig";
+import { useListConfigs } from "../../../hooks/useListConfigs";
+import type { ListConfigsResponse } from "../../../services/Queries/Config.gql";
 
 const WorkspaceLayout = () => {
   const nav = useNavigate();
@@ -34,6 +39,53 @@ const WorkspaceLayout = () => {
   const { pathname } = useLocation();
   const { wsId, teamId } = useParams();
   const { updateTeamId, updateWsId } = useControllerContext();
+
+  // Configuration modal state
+  const [showConfigModal, setShowConfigModal] = useState(false);
+
+  // Form setup for configuration
+  const { control, handleSubmit, reset } = useForm({
+    defaultValues: {
+      geminiModel: "gemini-2.5-flash",
+      googleApiKey: "",
+    },
+  });
+
+  // Config mutation hook
+  const createConfigMutation = useCreateConfig();
+
+  // Config query hook
+  const { data: configsData, isLoading: configsLoading } = useListConfigs() as {
+    data: ListConfigsResponse | undefined;
+    isLoading: boolean;
+  };
+
+  // Configuration form handlers
+  const onConfigSubmit = async (data: any) => {
+    try {
+      await createConfigMutation.mutateAsync({
+        config: [
+          {
+            key: "GEMINI_MODEL",
+            value: data.geminiModel,
+          },
+          {
+            key: "GOOGLE_API_KEY",
+            value: data.googleApiKey,
+          },
+        ],
+      });
+      setShowConfigModal(false);
+      reset();
+    } catch (error) {
+      console.error("Error saving configuration:", error);
+    }
+  };
+
+  const handleConfigModalClose = () => {
+    setShowConfigModal(false);
+    reset();
+  };
 
   const { user, removeUser }: any = useUser();
 
@@ -107,6 +159,25 @@ const WorkspaceLayout = () => {
       }
     }
   }, [teamId, teamsData, activeTeamId, setActiveTeam]);
+
+  // Populate form with existing config values when configs are loaded
+  useEffect(() => {
+    if (configsData?.listConfigs) {
+      const geminiConfig = configsData.listConfigs.find(
+        (config: { id: number; key: string; value: string }) =>
+          config.key === "GEMINI_MODEL"
+      );
+      const apiKeyConfig = configsData.listConfigs.find(
+        (config: { id: number; key: string; value: string }) =>
+          config.key === "GOOGLE_API_KEY"
+      );
+
+      reset({
+        geminiModel: geminiConfig?.value || "gemini-2.5-flash",
+        googleApiKey: apiKeyConfig?.value || "",
+      });
+    }
+  }, [configsData, reset]);
 
   return (
     <main className="workspace-layout">
@@ -214,6 +285,7 @@ const WorkspaceLayout = () => {
               <Button
                 className="tooltip tooltip-bottom"
                 data-tooltip="Workspace Settings"
+                onClick={() => setShowConfigModal(true)}
               >
                 <AiOutlineSetting />
               </Button>
@@ -267,6 +339,54 @@ const WorkspaceLayout = () => {
         size="lg"
       >
         <CreateTeam editMode={searchParams.get("edit") == "team"} />
+      </Modal>
+
+      <Modal
+        open={showConfigModal}
+        title="System Configuration"
+        onClose={handleConfigModalClose}
+        onSave={handleSubmit(onConfigSubmit)}
+        isLoading={createConfigMutation.isPending || configsLoading}
+        size="sm"
+      >
+        <form onSubmit={handleSubmit(onConfigSubmit)}>
+          {configsLoading ? (
+            <div style={{ textAlign: "center", padding: "2rem" }}>
+              <Loader />
+              <p>Loading configuration...</p>
+            </div>
+          ) : (
+            <div className="form-group">
+              <Controller
+                control={control}
+                name="geminiModel"
+                render={({ field, fieldState }) => (
+                  <Input
+                    label="GEMINI_MODEL"
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={fieldState?.error?.message}
+                    placeholder="GEMINI_MODEL"
+                  />
+                )}
+              />
+              <Controller
+                control={control}
+                name="googleApiKey"
+                render={({ field, fieldState }) => (
+                  <Input
+                    label="GOOGLE_API_KEY"
+                    type="password"
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={fieldState?.error?.message}
+                    placeholder="GOOGLE_API_KEY"
+                  />
+                )}
+              />
+            </div>
+          )}
+        </form>
       </Modal>
     </main>
   );
