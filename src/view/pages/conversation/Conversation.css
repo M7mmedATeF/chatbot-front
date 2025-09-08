@@ -187,6 +187,10 @@
         background-color: var(--secondary-color);
         border-end-start-radius: 0;
         text-align: start;
+
+        &.error-message {
+          background-color: var(--danger-color);
+        }
       }
 
       .tool-message {

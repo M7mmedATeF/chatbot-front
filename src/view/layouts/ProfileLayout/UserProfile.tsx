@@ -6,7 +6,7 @@ import { Link, Outlet } from "react-router";
 
 const ProfileLayout = () => {
   return (
-    <section className="user-profile-page section-page container">
+    <section className="user-profile-page section-page sys_container">
       <aside>
         <div className="glass-bg user-card profile-card">
           <Image

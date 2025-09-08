@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Nata+Sans:wght@100..900&display=swap");
+@import "tailwindcss";
 
 :root {
   --font-awesome: "Font Awesome 5 Free";
@@ -12,7 +13,7 @@
   --danger-color: #dc3545;
   --warning-color: #ffc107;
   --scrollbar-size: 5px;
-  --inline-padding: 15vw;
+  --inline-padding: min(15vw, 10%);
 }
 
 * {

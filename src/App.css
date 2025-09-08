@@ -176,11 +176,32 @@ pre.code {
   }
 }
 
-.container {
+.sys_container {
   padding: 3rem var(--inline-padding);
 
   @media (width < 860px) {
     padding: 3rem 5vw;
+  }
+}
+
+.separator {
+  position: relative;
+  font-size: 0.7rem;
+  text-align: start;
+  margin-block: 0.5rem;
+
+  span {
+    padding: 0.3rem 0.5rem;
+    border-radius: 0.2rem;
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    top: 50%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.2);
   }
 }
 

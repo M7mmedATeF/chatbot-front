@@ -1,44 +1,49 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import styles from "./ImageInput.module.css";
 import Image from "../Image/Image";
+import { uploadFile } from "../../../services/File.service";
+import Loader from "../Loader/Loader";
 
 type ImageInputProps = {
   preview?: string;
-  value?: File[];
+  value?: string;
   onChange?: (value: string) => void;
+  accept?: string;
 } & React.HTMLAttributes<HTMLInputElement>;
 
-const ImageInput = ({
-  value,
-  onChange,
-  preview,
-  ...props
-}: ImageInputProps) => {
-  const [imgSrc, setImgSrc] = useState<string>("");
-
-  useEffect(() => {
-    if (preview && !value) {
-      setImgSrc(preview);
-    }
-  }, [preview]);
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+const ImageInput = ({ value, onChange, ...props }: ImageInputProps) => {
+  const [isUploading, setIsUploading] = useState(false);
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setImgSrc(url);
-      onChange?.("test");
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const response = await uploadFile(file);
+      if (response.success && response.data?.file_path) {
+        onChange?.(response.data.file_path);
+      }
+    } catch (error) {
+      console.error("Image upload failed:", error);
+    } finally {
+      setIsUploading(false);
     }
   };
 
   return (
     <label htmlFor="image" className={styles.image_input}>
-      <Image src={imgSrc} alt="image" />
+      <Image src={value} alt="image" />
+      {isUploading && (
+        <div className={styles.upload_overlay}>
+          <Loader />
+        </div>
+      )}
       <input
         type="file"
         name="image"
         id="image"
         accept="image/*"
+        disabled={isUploading}
         {...props}
         onChange={handleImageChange}
       />

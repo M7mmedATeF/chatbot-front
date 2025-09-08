@@ -1,7 +1,10 @@
 import React from "react";
 import styles from "./Input.module.css";
 
-type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
+type InputProps = Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  "onChange"
+> & {
   placeholder?: string;
   value?: string;
   onChange?: (value: string) => void;

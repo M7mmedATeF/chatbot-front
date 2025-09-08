@@ -27,6 +27,48 @@ export interface LoginResponse {
   };
 }
 
+// Admin login mutation
+export const AdminLoginMutation = `
+mutation LoginAdmin($email: String!, $password: String!) {
+    loginAdmin(loginInput: { email: $email, password: $password }) {
+        email
+        id
+        name
+        token
+        AdminAuditLog {
+            action
+            adminId
+            createdAt
+            id
+            newValues
+            oldValues
+            recordId
+            tableName
+        }
+    }
+}
+`;
+
+// Types for admin login
+export interface AdminLoginResponse {
+  loginAdmin: {
+    id: string;
+    name: string;
+    email: string;
+    token: string;
+    AdminAuditLog: {
+      action: string;
+      adminId: string;
+      createdAt: string;
+      id: string;
+      newValues: string;
+      oldValues: string;
+      recordId: string;
+      tableName: string;
+    }[];
+  };
+}
+
 // Mutation function for React Query
 export const loginUserMutation = async (
   variables: LoginVariables

@@ -6,7 +6,10 @@ import { useRouter as RouterParser } from "../../../../router/useRouter";
 import { activeRoutes } from "../../../../router/ActiveRoutes";
 import { useMutation } from "@tanstack/react-query";
 import useFetch from "../../../../hooks/useFetch";
-import { UserLogin } from "../../../../services/Mutations/Auth.service";
+import {
+  UserLogin,
+  AdminLogin,
+} from "../../../../services/Mutations/Auth.service";
 import Loader from "../../../components/Loader/Loader";
 import { z } from "zod";
 import { Controller, useForm } from "react-hook-form";
@@ -38,8 +41,11 @@ const LoginPage = ({ isAdmin = false }) => {
   const { setUser }: any = useUser();
 
   const login = async (formdata: z.infer<typeof validation>) => {
+    console.log("formdata", formdata);
+
+    const loginMutation = isAdmin ? AdminLogin : UserLogin;
     const response = await fetch(
-      UserLogin,
+      loginMutation,
       {
         error: true,
         success: true,
@@ -48,9 +54,10 @@ const LoginPage = ({ isAdmin = false }) => {
     );
 
     if (response.data) {
-      const {
-        loginUser: { token, ...userData },
-      } = response.data;
+      const loginData = isAdmin
+        ? response.data.loginAdmin
+        : response.data.loginUser;
+      const { token, ...userData } = loginData;
 
       // Set token to cookies
       Cookies.set("USER", JSON.stringify(userData));
@@ -58,7 +65,8 @@ const LoginPage = ({ isAdmin = false }) => {
 
       setUser(userData);
 
-      nav("/");
+      // Navigate to admin dashboard if admin, otherwise to regular dashboard
+      nav(isAdmin ? "/admin" : "/");
     }
 
     return response;
@@ -101,7 +109,9 @@ const LoginPage = ({ isAdmin = false }) => {
 
           {isAdmin ? (
             <div className="form-actions form-actions-end">
-              <Button theme="borderd">Login</Button>
+              <Button type="submit" theme="borderd" disabled={isPending}>
+                {isPending ? <Loader /> : "Login"}
+              </Button>
             </div>
           ) : (
             <div className="form-actions">

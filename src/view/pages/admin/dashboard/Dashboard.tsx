@@ -6,14 +6,14 @@ import { PiToolboxLight } from "react-icons/pi";
 const Dashboard = () => {
   return (
     <>
-      <div className="select-dashboard-area">
-        <div className="dashboard-welcome">
+      <div className="select-dashboard-area text-center">
+        <div className="dashboard-welcome ">
           <h1>Admin Dashboard</h1>
           <p>Manage your MCP chatbot system</p>
         </div>
 
         <div className="dashboard-cards">
-          <div className="dashboard-card">
+          <div className="dashboard-card glass-bg">
             <div className="card-icon">
               <PiToolboxLight size={32} />
             </div>
@@ -24,7 +24,7 @@ const Dashboard = () => {
             </Button>
           </div>
 
-          <div className="dashboard-card">
+          <div className="dashboard-card glass-bg">
             <div className="card-icon">
               <AiOutlineDashboard size={32} />
             </div>
@@ -35,7 +35,7 @@ const Dashboard = () => {
             </Button>
           </div>
 
-          <div className="dashboard-card">
+          <div className="dashboard-card glass-bg">
             <div className="card-icon">
               <AiOutlineSetting size={32} />
             </div>

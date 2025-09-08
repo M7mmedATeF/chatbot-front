@@ -22,7 +22,11 @@ const AgentMessage = ({ message, OnOpenMessages }: AgentMessageProps) => {
 
   return (
     <div className="message-container">
-      <div className="message agent-message">
+      <div
+        className={`message agent-message ${
+          message.role === "SYSTEM" ? "error-message" : ""
+        }`}
+      >
         {messageText.length > 0 ? (
           <MarkdownPreview className="msg-content" source={messageText} />
         ) : (

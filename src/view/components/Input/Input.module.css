@@ -9,7 +9,12 @@
     height: 100%;
     border: 1px solid var(--secondary-text-color);
     border-radius: 0.2rem;
-    padding: 0.7rem 0.75rem;
+    padding: 0.2rem 0.7rem 0.4rem;
+    transition: border-color 0.2s ease-in-out;
+
+    &:has(input:focus) {
+      border-color: var(--primary-color);
+    }
   }
 
   input {
@@ -19,7 +24,6 @@
   }
 
   .label {
-    padding: 0.2rem 0.5rem 0;
     text-transform: capitalize;
     font-size: 0.7em;
   }

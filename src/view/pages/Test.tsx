@@ -2,7 +2,6 @@ import Button from "../components/Button/Button";
 import Checkbox from "../components/Checkbox/Checkbox";
 import Input from "../components/Input/Input";
 import Loader from "../components/Loader/Loader";
-import FileInput from "../components/FileInput/FileInput";
 import RadioButton from "../components/RadioButton/RadioButton";
 import PasswordInput from "../components/PasswordInput/PasswordInput";
 
@@ -101,12 +100,6 @@ const Test = () => {
         <td>Loader:</td>
         <td>
           <Loader />
-        </td>
-      </tr>
-      <tr>
-        <td>FileInput:</td>
-        <td>
-          <FileInput placeholder="File Input" />
         </td>
       </tr>
     </table>

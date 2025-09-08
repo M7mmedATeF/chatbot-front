@@ -3,7 +3,7 @@ import style from "./Button.module.css";
 import { NavLink, type NavLinkProps } from "react-router";
 
 type ButtonProps = {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   onClick?: () => void;
   className?: string;
   disabled?: boolean;

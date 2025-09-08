@@ -7,57 +7,26 @@ const Image = ({
   ...props
 }: React.ImgHTMLAttributes<HTMLImageElement>) => {
   const [imgSrc, setImgSrc] = useState(src);
-  const [hasError, setHasError] = useState(false);
-  const [isBrokenImgLoaded, setIsBrokenImgLoaded] = useState(false);
 
   useEffect(() => {
-    if (src !== imgSrc) {
-      setImgSrc(src);
-      setHasError(false);
-    }
     if (!src) {
       setImgSrc(brokenIMG);
+    } else {
+      const img = src?.startsWith("uploads")
+        ? `${import.meta.env.VITE_API_URL}/${src}`
+        : src;
+
+      setImgSrc(img);
     }
   }, [src]);
 
   const handleError = () => {
-    if (!hasError && !isBrokenImgLoaded) {
-      setHasError(true);
-      setImgSrc(brokenIMG);
-    }
-  };
-
-  const handleBrokenImgLoad = () => {
-    setIsBrokenImgLoaded(true);
-  };
-
-  const handleBrokenImgError = () => {
-    setIsBrokenImgLoaded(false);
+    setImgSrc(brokenIMG);
   };
 
   return (
     <>
-      {/* صورة مخفية للتحقق من تحميل الصورة الاحتياطية */}
-      {!isBrokenImgLoaded && (
-        <img
-          src={brokenIMG}
-          alt=""
-          style={{ display: "none" }}
-          onLoad={handleBrokenImgLoad}
-          onError={handleBrokenImgError}
-        />
-      )}
-
-      <img
-        src={imgSrc}
-        alt={
-          hasError && imgSrc === brokenIMG
-            ? `${alt || "Image"} - خطأ في عرض الصورة`
-            : alt || "Image"
-        }
-        {...props}
-        onError={handleError}
-      />
+      <img src={imgSrc} alt={alt || "Image"} {...props} onError={handleError} />
     </>
   );
 };

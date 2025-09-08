@@ -123,9 +123,11 @@ const Conversation = () => {
 
     // If streaming, only scroll if user is already near bottom (within 100px)
     if (isStreaming && messagesContainerRef.current) {
-      const container = messagesContainerRef.current;
+      const sys_container = messagesContainerRef.current;
       const isNearBottom =
-        container.scrollHeight - container.scrollTop - container.clientHeight <
+        sys_container.scrollHeight -
+          sys_container.scrollTop -
+          sys_container.clientHeight <
         100;
 
       if (isNearBottom) {
@@ -204,7 +206,9 @@ const Conversation = () => {
                     >
                       <div className="tool-call-header">
                         <span className="tool-role">{toolCall.role}</span>
-                        <span className="tool-time">{toolCall.createdAt}</span>
+                        <span className="tool-time">
+                          {dayjs(toolCall.createdAt).format("hh:mm A")}
+                        </span>
                       </div>
                       {(toolCall.Content || (toolCall as any).content).map(
                         (content: any, contentIdx: number) => (

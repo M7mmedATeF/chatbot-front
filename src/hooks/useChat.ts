@@ -70,6 +70,8 @@ export const useChat = ({
   const finishStreaming = useCallback(() => {
     const latest = newMessageRef.current;
 
+    console.log(latest);
+
     setIsStreaming(false);
     if (latest) {
       setMessages((prev) => [...prev, { ...latest, isStreaming: false }]);
@@ -148,11 +150,10 @@ export const useChat = ({
           onmessage: (event: any) => {
             try {
               const data = event.data;
-              console.log(data, event);
 
               if (!data) return;
 
-              if (data.content?.length) {
+              if (data?.content?.length) {
                 if (
                   data.content[0].toolRequest ||
                   data.content[0].toolResponse
@@ -162,7 +163,7 @@ export const useChat = ({
                   }
                   setToolData((prev) => [
                     ...prev,
-                    { ...data, timestamp: new Date() },
+                    { ...data, timestamp: new Date().toString() },
                   ]);
                 } else {
                   setNewMessage((prev) => {
@@ -177,25 +178,25 @@ export const useChat = ({
                 }
                 onMessage?.({ ...assistantMsg, isStreaming: true });
               } else if (typeof data === "string") {
-                setNewMessage(null);
-                setMessages((prev) => [
-                  ...prev,
-                  {
-                    id: `error-${Date.now()}`,
+                console.log("ERR", data);
+
+                setNewMessage(() => {
+                  const updated: ChatMessage = {
+                    id: new Date().toISOString(),
                     role: "ERROR",
                     timestamp: new Date(),
-                    content: [
+                    isStreaming: false,
+                    Content: [
                       {
                         id: Date.now(),
-                        text:
-                          typeof data === "string"
-                            ? data
-                            : JSON.stringify(data),
+                        text: data,
                         createdAt: new Date(),
                       },
                     ],
-                  } as any,
-                ]);
+                  };
+                  newMessageRef.current = updated;
+                  return updated;
+                });
                 setToolData((prev) => [
                   ...prev,
                   {
@@ -214,11 +215,9 @@ export const useChat = ({
                     ],
                   } as any,
                 ]);
-
                 throw new Error(data);
               }
             } catch {
-              finishStreaming();
               onError?.(new Error("Failed to parse SSE data"));
             }
           },

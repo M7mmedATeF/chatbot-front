@@ -29,11 +29,7 @@
   }
 
   .actions {
-    position: absolute;
-    inset-inline-end: 0.5rem;
-    top: 0.5rem;
     display: flex;
-    flex-direction: column;
     gap: 0.5rem;
 
     button,
@@ -50,14 +46,12 @@
 
   .agentCard_tools {
     display: flex;
-    justify-content: flex-start;
+    justify-content: flex baseline;
     align-items: center;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin-top: 1rem;
-    padding-block: 1rem;
-    border-block: 1px solid rgba(255, 255, 255, 0.1);
 
+    button,
     span {
       padding: 0.2rem 0.5rem;
       border-radius: 0.3rem;

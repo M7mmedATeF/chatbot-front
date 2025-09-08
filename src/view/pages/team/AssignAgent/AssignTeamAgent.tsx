@@ -1,13 +1,13 @@
 import { useState } from "react";
 import Input from "../../../components/Input/Input";
-import AgentCard from "../../../components/AgentCard/AgentCard";
+// import AgentCard from "../../../components/AgentCard/AgentCard";
 import Modal from "../../../components/Modal/Modal";
 
 const AssignTeamAgent = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
   return (
-    <section className="workspace-agents section-page container">
+    <section className="workspace-agents section-page sys_container">
       <h2>Assign Agent To Team</h2>
 
       <form>
@@ -16,10 +16,10 @@ const AssignTeamAgent = () => {
         </div>
 
         <div className="agents-list">
-          {Array.from({ length: 9 }).map((_, index) => (
+          {/* {Array.from({ length: 9 }).map((_, index) => (
             <AgentCard
               addMode
-              agent={{
+              mcp={{
                 image: "https:/placehold.co/600x400",
                 name: `Agent ${index + 1}`,
                 description:
@@ -31,7 +31,7 @@ const AssignTeamAgent = () => {
                 ],
               }}
             />
-          ))}
+          ))} */}
         </div>
       </form>
 

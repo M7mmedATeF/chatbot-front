@@ -4,6 +4,7 @@
   z-index: 100;
   background-color: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(5px);
+  overflow: hidden;
 
   display: flex;
   justify-content: center;
@@ -39,6 +40,9 @@
 
     .modalHeader {
       display: flex;
+      position: sticky;
+      top: 0;
+      background: inherit;
       justify-content: space-between;
       align-items: center;
       gap: 0.5rem;

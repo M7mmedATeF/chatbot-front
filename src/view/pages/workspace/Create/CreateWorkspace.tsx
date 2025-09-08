@@ -19,7 +19,7 @@ const CreateWorkspace = () => {
   }, []);
 
   return (
-    <section className="createWS section-page container">
+    <section className="createWS section-page sys_container">
       <h2>Create Workspace</h2>
       <form>
         <div className="headline">

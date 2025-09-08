@@ -1,0 +1,92 @@
+.inputWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+
+  .input {
+    width: 100%;
+    height: 100%;
+    border: 1px solid var(--secondary-text-color);
+    border-radius: 0.2rem;
+    padding: 0.2rem 0.7rem 0.4rem;
+    transition: border-color 0.2s ease-in-out;
+
+    &:has(input:focus) {
+      border-color: var(--primary-color);
+    }
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+
+    button {
+      padding: 0.3rem 0.4rem;
+    }
+  }
+
+  input {
+    background-color: transparent;
+    color: currentColor;
+    width: 100%;
+  }
+
+  .label {
+    text-transform: capitalize;
+    font-size: 0.7em;
+  }
+
+  .error {
+    background-color: var(--danger-color);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    padding: 0.2rem 0.5rem;
+    width: 100%;
+    border-radius: 0.2rem;
+    color: #fff;
+  }
+
+  .itemsList {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+
+    > div {
+      display: inline-flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      padding: 0.2rem 0.3rem;
+      color: var(--text-color);
+      border-radius: 0.2rem;
+      animation: PopupItems 0.2s ease-in-out;
+
+      button {
+        padding: 0 0.2rem;
+        border-radius: 50%;
+        justify-content: center;
+        align-items: center;
+        font-size: 0.7em;
+        aspect-ratio: 1;
+      }
+    }
+  }
+}
+
+@keyframes PopupItems {
+  0% {
+    opacity: 0;
+    scale: 0;
+  }
+  100% {
+    opacity: 1;
+    scale: 1;
+  }
+}

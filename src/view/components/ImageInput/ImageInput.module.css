@@ -1,5 +1,7 @@
 .image_input {
+  position: relative;
   cursor: pointer;
+
   input {
     display: none;
   }
@@ -10,5 +12,23 @@
     object-fit: cover;
     border-radius: 0.5rem;
     border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .upload_overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    color: white;
+
+    svg {
+      opacity: 0.8;
+    }
   }
 }
