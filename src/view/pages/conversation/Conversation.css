@@ -61,7 +61,21 @@
     }
 
     .mcp-calls-container {
+      position: relative;
       overflow: hidden;
+      user-select: none;
+
+      .drawer {
+        position: absolute;
+        inset-block: 0;
+        inset-inline-end: 0;
+        width: 3px;
+        cursor: ew-resize;
+
+        &:hover {
+          background-color: var(--primary-color);
+        }
+      }
     }
 
     .mcp-calls {
@@ -161,6 +175,10 @@
         min-width: 100px;
         max-width: 70%;
         border-radius: 0.5rem;
+
+        ul {
+          list-style: disc;
+        }
 
         .msg-content {
           margin-bottom: 0.2rem;

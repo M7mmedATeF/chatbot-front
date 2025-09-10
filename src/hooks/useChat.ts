@@ -70,13 +70,10 @@ export const useChat = ({
   const finishStreaming = useCallback(() => {
     const latest = newMessageRef.current;
 
-    console.log(latest);
-
     setIsStreaming(false);
     if (latest) {
-      setMessages((prev) => [...prev, { ...latest, isStreaming: false }]);
       setNewMessage(null);
-      newMessageRef.current = null;
+      setMessages((prev) => [...prev, latest]);
     }
   }, []);
 
@@ -151,6 +148,8 @@ export const useChat = ({
             try {
               const data = event.data;
 
+              console.log("Event: ", data);
+
               if (!data) return;
 
               if (data?.content?.length) {
@@ -178,8 +177,6 @@ export const useChat = ({
                 }
                 onMessage?.({ ...assistantMsg, isStreaming: true });
               } else if (typeof data === "string") {
-                console.log("ERR", data);
-
                 setNewMessage(() => {
                   const updated: ChatMessage = {
                     id: new Date().toISOString(),
@@ -197,6 +194,7 @@ export const useChat = ({
                   newMessageRef.current = updated;
                   return updated;
                 });
+
                 setToolData((prev) => [
                   ...prev,
                   {
@@ -222,6 +220,8 @@ export const useChat = ({
             }
           },
           done: () => {
+            console.log("Done");
+
             finishStreaming();
             setCachedMessagesToolCalls((prev) => {
               const newCachedMessagesToolCalls = { ...prev };

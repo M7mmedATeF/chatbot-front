@@ -16,7 +16,6 @@ import { AiOutlineArrowLeft } from "react-icons/ai";
 import dayjs from "dayjs";
 
 const Conversation = () => {
-  const [showMCP, setShowMCP] = useState(false);
   const [showLiveCalls, setShowLiveCalls] = useState(false);
   const [selectedMessageId, setSelectedMessageId] = useState<
     number | string | null
@@ -49,7 +48,7 @@ const Conversation = () => {
     },
     openMcpPanel: () => {
       setShowLiveCalls(true);
-      setShowMCP(true);
+      setTabSize(defaultSize);
     },
     dependencies: [roomId],
   });
@@ -150,17 +149,74 @@ const Conversation = () => {
   const showMessageProcessingCalls = (messageId: number | string) => {
     setShowLiveCalls(false);
     setSelectedMessageId(messageId);
-    setShowMCP(true);
+    setTabSize(defaultSize);
     // If message is streaming, use toolData directly (no DB fetch needed)
     // If message is not streaming, selectedMessageId will trigger the DB fetch via useToolCallsBetweenMessages
   };
 
+  const [defaultSize, setDefaultSize] = useState(0);
+  const [tabSize, setTabSize] = useState<number>(0);
+  const [isClicked, setIsClicked] = useState<boolean>(false);
+  const tabContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleDrawerMove = useCallback(
+    (e: MouseEvent) => {
+      if (isClicked) {
+        setTabSize(
+          tabContainerRef?.current
+            ? Math.min(
+                tabContainerRef?.current?.getBoundingClientRect().width / 3 +
+                  tabContainerRef?.current?.getBoundingClientRect().left,
+                e.clientX
+              )
+            : e.clientX
+        );
+      }
+    },
+    [isClicked]
+  );
+
+  useEffect(() => {
+    if (defaultSize == 0) {
+      const boundry = tabContainerRef?.current?.getBoundingClientRect() || {
+        left: 1500,
+        width: 0,
+      };
+      setDefaultSize(boundry?.left + boundry?.width / 3);
+      return;
+    }
+
+    if (tabContainerRef.current) {
+      if (tabSize == 0) {
+        tabContainerRef.current.style.gridTemplateColumns = `0px minmax(0, 1fr)`;
+      }
+
+      const containerBoundry = tabContainerRef.current.getBoundingClientRect();
+      let ratio =
+        tabSize < containerBoundry.left
+          ? tabSize
+          : tabSize - containerBoundry.left;
+      console.log(ratio);
+
+      if (ratio <= 150) {
+        ratio = 0;
+        setTabSize(0);
+      }
+      tabContainerRef.current.style.gridTemplateColumns = `${ratio}px minmax(0, 1fr)`;
+    }
+  }, [tabSize]);
+
   return (
-    <section className="conversation-page">
+    <section
+      className="conversation-page"
+      onMouseUp={() => setIsClicked(false)}
+      onMouseLeave={() => setIsClicked(false)}
+      onMouseMove={(e) => handleDrawerMove(e as any)}
+    >
       <div className="conversation-header glass-bg">
         <div className="user-actions">
-          {showMCP && (
-            <Button onClick={() => setShowMCP(false)}>
+          {tabSize > 150 && (
+            <Button onClick={() => setTabSize(0)}>
               <AiOutlineArrowLeft />
             </Button>
           )}
@@ -179,7 +235,7 @@ const Conversation = () => {
           </div>
         </div>
       </div>
-      <div className={`conversation-body-layout ${showMCP ? "show-mcp" : ""}`}>
+      <div className={`conversation-body-layout`} ref={tabContainerRef}>
         <div className="mcp-calls-container">
           <div className="glass-bg mcp-calls">
             <div className="mcp-header">
@@ -255,6 +311,7 @@ const Conversation = () => {
               )}
             </div>
           </div>
+          <div className="drawer" onMouseDown={() => setIsClicked(true)}></div>
         </div>
 
         <div className="conversation-body">

@@ -46,7 +46,7 @@ const WorkspaceLayout = () => {
   // Form setup for configuration
   const { control, handleSubmit, reset } = useForm({
     defaultValues: {
-      geminiModel: "gemini-2.5-flash",
+      geminiModel: "",
       googleApiKey: "",
     },
   });
@@ -173,7 +173,7 @@ const WorkspaceLayout = () => {
       );
 
       reset({
-        geminiModel: geminiConfig?.value || "gemini-2.5-flash",
+        geminiModel: geminiConfig?.value || "",
         googleApiKey: apiKeyConfig?.value || "",
       });
     }
