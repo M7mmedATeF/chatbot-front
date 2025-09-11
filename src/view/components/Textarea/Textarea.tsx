@@ -5,9 +5,16 @@ type InputProps = {
   placeholder?: string;
   value?: string;
   onChange?: (value: string) => void;
+  error?: string;
 } & React.TextareaHTMLAttributes<HTMLTextAreaElement>;
 
-const Textarea = ({ placeholder, value, onChange, ...props }: InputProps) => {
+const Textarea = ({
+  placeholder,
+  value,
+  onChange,
+  error,
+  ...props
+}: InputProps) => {
   return (
     <label className={styles.input}>
       <textarea
@@ -16,6 +23,7 @@ const Textarea = ({ placeholder, value, onChange, ...props }: InputProps) => {
         onChange={(e) => onChange?.(e.target.value)}
         {...props}
       />
+      {error && <small className={styles.error}>{error}</small>}
     </label>
   );
 };

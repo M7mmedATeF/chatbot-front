@@ -18,6 +18,7 @@ import { useActiveWorkspace } from "../../../stores/workspace.store";
 import { useControllerContext } from "../../../context/ControllerContext";
 import {
   AiOutlineLogout,
+  AiOutlinePlus,
   AiOutlineSetting,
   AiOutlineUser,
 } from "react-icons/ai";
@@ -32,6 +33,7 @@ import Input from "../../components/Input/Input";
 import { useCreateConfig } from "../../../hooks/useCreateConfig";
 import { useListConfigs } from "../../../hooks/useListConfigs";
 import type { ListConfigsResponse } from "../../../services/Queries/Config.gql";
+import Image from "../../components/Image/Image";
 
 const WorkspaceLayout = () => {
   const nav = useNavigate();
@@ -393,17 +395,48 @@ const WorkspaceLayout = () => {
 };
 
 export const SelectWorkspace = () => {
-  return (
-    <>
-      <div className="select-workspace-area">
-        <img src={bot} alt="bot" />
-        <h1>MCP Chatbot</h1>
-        <p>Select a workspace to get started</p>
-        <Button href="/workspace/create" theme="primary">
-          Start your workspace
+  const { data: workspaces, isLoading: workspacesLoading } = useWorkspaces();
+  return workspaces && workspaces?.myWorkspaces.length > 0 ? (
+    <section className="sys_container">
+      <h2 className="font-black text-4xl">Your workspaces</h2>
+      <div className="workspaces-grid mt-10">
+        {workspaces?.myWorkspaces.map((workspace) => (
+          <Button
+            className="workspace-card glass-bg"
+            href={`/workspace/${workspace.id}`}
+          >
+            <Image src={bot} alt="workspace" className="avatar" />
+            <div>
+              <p className="whitespace-nowrap">{workspace.name}</p>
+              <p className="text-sm text-gray-400">{workspace.userRole}</p>
+            </div>
+          </Button>
+        ))}
+        <Button className="workspace-card glass-bg" href={`/workspace/create`}>
+          <div className="avatar">
+            <AiOutlinePlus />
+          </div>
+          <p>Create workspace</p>
         </Button>
       </div>
-    </>
+    </section>
+  ) : (
+    <div className="select-workspace-area">
+      <img src={bot} alt="bot" />
+      <h1>MCP Chatbot</h1>
+      <p>
+        {!workspacesLoading
+          ? "Select a workspace to get started"
+          : "Loading workspaces..."}
+      </p>
+      {!workspacesLoading && (
+        <>
+          <Button href="/workspace/create" theme="primary">
+            Start your workspace
+          </Button>
+        </>
+      )}
+    </div>
   );
 };
 

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import styles from "./ImageInput.module.css";
 import Image from "../Image/Image";
 import { uploadFile } from "../../../services/File.service";
-import Loader from "../Loader/Loader";
+import CircularProgress from "../CircularProgress/CircularProgress";
 
 type ImageInputProps = {
   preview?: string;
@@ -13,13 +13,24 @@ type ImageInputProps = {
 
 const ImageInput = ({ value, onChange, ...props }: ImageInputProps) => {
   const [isUploading, setIsUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setIsUploading(true);
     try {
-      const response = await uploadFile(file);
+      const response = await uploadFile(file, {
+        onUploadProgress: (event) => {
+          if (event.total) {
+            const percent = Math.round((event.loaded * 100) / event.total);
+            console.log(percent);
+
+            setProgress(percent);
+          }
+        },
+      });
       if (response.success && response.data?.file_path) {
         onChange?.(response.data.file_path);
       }
@@ -35,7 +46,7 @@ const ImageInput = ({ value, onChange, ...props }: ImageInputProps) => {
       <Image src={value} alt="image" />
       {isUploading && (
         <div className={styles.upload_overlay}>
-          <Loader />
+          <CircularProgress progress={progress} />
         </div>
       )}
       <input

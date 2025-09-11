@@ -13,7 +13,10 @@ export interface FileUploadResponse {
   };
 }
 
-export const uploadFile = async (file: File): Promise<FileUploadResponse> => {
+export const uploadFile = async (
+  file: File,
+  options?: { onUploadProgress?: (event: any) => void }
+): Promise<FileUploadResponse> => {
   const formData = new FormData();
   formData.append("file", file);
 
@@ -24,6 +27,7 @@ export const uploadFile = async (file: File): Promise<FileUploadResponse> => {
       headers: {
         "Content-Type": "multipart/form-data",
       },
+      ...options,
     }
   );
 

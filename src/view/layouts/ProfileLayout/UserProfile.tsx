@@ -3,8 +3,15 @@ import Image from "../../components/Image/Image";
 import Button from "../../components/Button/Button";
 import { AiOutlineArrowRight } from "react-icons/ai";
 import { Link, Outlet } from "react-router";
+import { useUser } from "../../../stores/user.store";
+import { useWorkspaces } from "../../../hooks/useWorkspaces";
 
 const ProfileLayout = () => {
+  const { user } = useUser() as any;
+  const { data: workspaces, isLoading: workspacesLoading } = useWorkspaces();
+
+  console.log(user);
+
   return (
     <section className="user-profile-page section-page sys_container">
       <aside>
@@ -14,8 +21,8 @@ const ProfileLayout = () => {
             src="http://placehold.co/60"
             alt="user"
           />
-          <h3>John Doe</h3>
-          <p>john.doe@chatbot.com</p>
+          <h3>{user?.name}</h3>
+          <p>{user?.email}</p>
         </div>
 
         <div className="glass-bg profile-card">
@@ -27,27 +34,25 @@ const ProfileLayout = () => {
           </div>
 
           <ul className="workspaces-list">
-            {Array.from({ length: 5 }).map((_, index) => (
-              <li key={index}>
-                <Link to={`/workspace/${index}`}>
-                  <img
-                    className="avatar"
-                    src="http://placehold.co/60"
-                    alt="workspace"
-                  />
-                  <div>
-                    <p className="name">Workspace {index + 1}</p>
-                    <p className="position">
-                      {index === 0
-                        ? "Owner"
-                        : index === 1
-                        ? "Moderator"
-                        : "Employee"}
-                    </p>
-                  </div>
-                </Link>
-              </li>
-            ))}
+            {workspacesLoading ? (
+              <li>Loading workspaces...</li>
+            ) : (
+              workspaces?.myWorkspaces?.map((workspace) => (
+                <li key={workspace.id}>
+                  <Link to={`/workspace/${workspace.id}`}>
+                    <img
+                      className="avatar"
+                      src="http://placehold.co/60"
+                      alt="workspace"
+                    />
+                    <div>
+                      <p className="name">{workspace.name}</p>
+                      <p className="position">Member</p>
+                    </div>
+                  </Link>
+                </li>
+              ))
+            )}
           </ul>
         </div>
       </aside>

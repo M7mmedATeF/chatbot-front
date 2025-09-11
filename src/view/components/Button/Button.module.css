@@ -1,3 +1,7 @@
+button {
+  border: 1px solid transparent;
+}
+
 .linkbtn {
   display: inline-flex;
   justify-content: center;
@@ -6,7 +10,6 @@
   padding: 0.5rem 1rem;
   color: inherit;
   border-radius: 0.2rem;
-  border: 1px solid transparent;
   transition: filter 0.2s ease-in-out;
   text-align: center;
 
@@ -42,5 +45,10 @@
 }
 .warning {
   background: var(--warning-color);
+  color: #000;
+}
+.glass-bg {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   color: #000;
 }

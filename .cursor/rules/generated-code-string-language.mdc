@@ -1,0 +1,8 @@
+---
+description: Human language to be printed in frontend and toasts for users
+globs:
+alwaysApply: true
+---
+
+- You should never print any text in ar in code except if asked for a translation
+- always show success, failure messages in english as default language

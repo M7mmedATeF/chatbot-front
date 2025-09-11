@@ -2,12 +2,16 @@ import AxiosFetch from "../AxiosFetch";
 import type { ApiResponse } from "../AxiosFetch";
 
 // GraphQL query string
+
+export type EmployeeRole = "OWNER" | "EMPLOYEE" | "MANAGER";
+
 export const MyWorkspacesQuery = `
 query MyWorkspaces {
     myWorkspaces {
         id
         name
         createdAt
+        userRole
     }
 }
 `;
@@ -17,6 +21,7 @@ export interface GraphQLWorkspace {
   id: string;
   name: string;
   createdAt: string;
+  userRole: EmployeeRole;
 }
 
 export interface MyWorkspacesResponse {

@@ -4,6 +4,7 @@ import Input from "../components/Input/Input";
 import Loader from "../components/Loader/Loader";
 import RadioButton from "../components/RadioButton/RadioButton";
 import PasswordInput from "../components/PasswordInput/PasswordInput";
+import CircularProgress from "../components/CircularProgress/CircularProgress";
 
 const Test = () => {
   return (
@@ -100,6 +101,12 @@ const Test = () => {
         <td>Loader:</td>
         <td>
           <Loader />
+        </td>
+      </tr>
+      <tr>
+        <td>Progress:</td>
+        <td>
+          <CircularProgress progress={50} />
         </td>
       </tr>
     </table>

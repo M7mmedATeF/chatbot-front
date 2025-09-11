@@ -1,86 +1,133 @@
-import { useMemo, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router";
 import "./CreateWorkspace.css";
 import Input from "../../../components/Input/Input";
 import Textarea from "../../../components/Textarea/Textarea";
 import Button from "../../../components/Button/Button";
-import Modal from "../../../components/Modal/Modal";
+import ImageInput from "../../../components/ImageInput/ImageInput";
+import {
+  createWorkspaceMutation,
+  type CreateWorkspaceVariables,
+} from "../../../../services/Mutations/Workspace.gql";
+import { useActiveWorkspace } from "../../../../stores/workspace.store";
+
+// Zod validation schema
+const createWorkspaceSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Workspace name is required")
+    .min(2, "Workspace name must be at least 2 characters")
+    .max(50, "Workspace name must be less than 50 characters"),
+  sys_instruction: z
+    .string()
+    .max(500, "System instructions must be less than 500 characters")
+    .optional(),
+});
+
+type CreateWorkspaceForm = z.infer<typeof createWorkspaceSchema>;
 
 const CreateWorkspace = () => {
-  const [showSelectAgent, setShowSelectAgent] = useState(false);
-  const [SelectedAgent, setSelectedAgent] = useState<any[]>([]);
-  const Agents = useMemo(() => {
-    return Array.from({ length: 10 }, (_, index) => ({
-      id: index,
-      name: `Agent ${index + 1}`,
-      tools: ["tool1", "tool2", "tool3"],
-      icon: `https://placehold.co/60`,
-      requirements: ["Requirement 1", "Requirement 2", "Requirement 3"],
-    }));
-  }, []);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const { setActiveWorkspace }: any = useActiveWorkspace();
+
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+    reset,
+  } = useForm<CreateWorkspaceForm>({
+    resolver: zodResolver(createWorkspaceSchema),
+    defaultValues: {
+      name: "",
+      sys_instruction: "",
+    },
+  });
+
+  const createWorkspace = useMutation({
+    mutationFn: createWorkspaceMutation,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+      toast.success("Workspace created successfully");
+      reset();
+      // Navigate to the newly created workspace
+      setActiveWorkspace(data.createWorkspace);
+      navigate(`/workspace/${data.createWorkspace.id}`);
+    },
+    onError: (error: Error) => {
+      toast.error(
+        error.message || "An error occurred while creating the workspace"
+      );
+    },
+  });
+
+  const onSubmit = (data: CreateWorkspaceForm) => {
+    const workspaceData: CreateWorkspaceVariables = {
+      createWorkspaceInput: {
+        name: data.name,
+        sys_instruction: data.sys_instruction || null,
+      },
+    };
+
+    createWorkspace.mutate(workspaceData);
+  };
 
   return (
     <section className="createWS section-page sys_container">
       <h2>Create Workspace</h2>
-      <form>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <div className="headline">
           <h3>Workspace Information</h3>
         </div>
         <div className="info-box form-box">
-          <label htmlFor="image" className="image_input">
-            <img src="https://placehold.co/200" alt="workspace" />
-            <input type="file" name="image" id="image" accept="image/*" />
-          </label>
+          <ImageInput />
 
           <div className="column-input">
-            <Input placeholder="Workspace Name" />
-            <Textarea placeholder="General system instructions" />
+            <Controller
+              control={control}
+              name="name"
+              render={({ field, fieldState: { error } }) => (
+                <Input
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Workspace Name"
+                  error={error?.message}
+                />
+              )}
+            />
+
+            <Controller
+              control={control}
+              name="sys_instruction"
+              render={({ field, fieldState: { error } }) => (
+                <Textarea
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="General system instructions (optional)"
+                  error={error?.message}
+                />
+              )}
+            />
           </div>
         </div>
 
         <div className="form-footer">
-          <Button theme="primary">Create Workspace</Button>
+          <Button
+            theme="primary"
+            type="submit"
+            disabled={isSubmitting || createWorkspace.isPending}
+          >
+            {isSubmitting || createWorkspace.isPending
+              ? "Creating..."
+              : "Create Workspace"}
+          </Button>
         </div>
       </form>
-
-      <Modal
-        open={showSelectAgent}
-        className="select-agent-modal"
-        title="Select Agent"
-        onClose={() => setShowSelectAgent(false)}
-      >
-        <div className="search-box">
-          <Input placeholder="Search For Agent" />
-        </div>
-        <div className="agent-list">
-          {Agents.length > 0 &&
-            Agents.map((a) => (
-              <button
-                className={`agent-item ${
-                  SelectedAgent.find((ag) => ag.id === a.id) ? "selected" : ""
-                }`}
-                onClick={() => {
-                  const idx = SelectedAgent.findIndex((ag) => ag.id == a.id);
-                  if (idx != -1) {
-                    setSelectedAgent(SelectedAgent.filter((_, i) => i !== idx));
-                  } else {
-                    setSelectedAgent([...SelectedAgent, a]);
-                  }
-                }}
-              >
-                <img src={a.icon} alt={a.name} />
-                <div className="info">
-                  <p className="agent-name">{a.name}</p>
-                  <div className="agent-tools">
-                    {a.tools.length > 0 &&
-                      a.tools.map((t) => (
-                        <span className="agent-tool">{t}</span>
-                      ))}
-                  </div>
-                </div>
-              </button>
-            ))}
-        </div>
-      </Modal>
     </section>
   );
 };

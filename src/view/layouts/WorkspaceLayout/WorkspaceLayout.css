@@ -66,6 +66,33 @@
       margin-top: 1rem;
     }
   }
+  .workspaces-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+
+    div.avatar {
+      aspect-ratio: 1;
+      border-radius: 50%;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 20rem;
+    }
+
+    .workspace-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-evenly;
+      align-items: center;
+      gap: 0.5rem;
+      text-align: center;
+      aspect-ratio: 1;
+      padding: 1rem;
+    }
+  }
 }
 
 @keyframes floating-bot {
