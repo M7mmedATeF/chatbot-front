@@ -1,7 +1,7 @@
 type Query = Record<string, string | number>;
 type Params = Record<string, number | string | Query>;
 
-export const useRouter = (router: string, params?: Params): string => {
+export const RouteParser = (router: string, params?: Params): string => {
   const route: string[] = router.split("/").filter((val) => val != "");
   const generatedRoute = [...route];
   let query: Query = {};

@@ -78,3 +78,142 @@ export const createTeamMutation = async (
 
   return response.data.data as CreateTeamResponse;
 };
+
+// GraphQL mutation string for workspace update
+export const UpdateWorkspaceMutation = `
+mutation UpdateWorkspace($updateWorkspaceInput: WorkspaceInput!) {
+    updateWorkspace(updateWorkspaceInput: $updateWorkspaceInput) {
+        id
+        name
+        sys_instruction
+        createdAt
+        userRole
+    }
+}
+`;
+
+// Types for the update workspace mutation
+export interface UpdateWorkspaceVariables {
+  updateWorkspaceInput: {
+    name: string;
+    sys_instruction?: string | null;
+  };
+}
+
+export interface UpdateWorkspaceResponse {
+  updateWorkspace: {
+    id: string;
+    name: string;
+    sys_instruction: string | null;
+    createdAt: string;
+    userRole: string;
+  };
+}
+
+// Mutation function for workspace update
+export const updateWorkspaceMutation = async (
+  variables: UpdateWorkspaceVariables
+): Promise<UpdateWorkspaceResponse> => {
+  const response = await AxiosFetch.post<ApiResponse<UpdateWorkspaceResponse>>(
+    "",
+    {
+      query: UpdateWorkspaceMutation,
+      variables,
+    }
+  );
+
+  return response.data.data as UpdateWorkspaceResponse;
+};
+
+// GraphQL mutation string for creating workspace MCP
+export const CreateWorkspaceMcpMutation = `
+mutation CreateWorkspaceMcp($createWorkspaceMcpInput: CreateWorkspaceMcpInput!) {
+    createWorkspaceMcp(createWorkspaceMcpInput: $createWorkspaceMcpInput) {
+        id
+        Mcp {
+            id
+            name
+            path
+            icon
+            description
+            version
+            createdAt
+            updatedAt
+        }
+        Workspace {
+            id
+            name
+            sys_instruction
+            createdAt
+            userRole
+        }
+        Tools {
+            id
+            name
+            description
+            examples
+            createdAt
+            updatedAt
+        }
+    }
+}
+`;
+
+// Types for the create workspace MCP mutation
+export interface EnvVariable {
+  key: string;
+  value: string;
+}
+
+export interface CreateWorkspaceMcpVariables {
+  createWorkspaceMcpInput: {
+    mcpId: number;
+    toolsIds: number[];
+    env: EnvVariable[];
+  };
+}
+
+export interface CreateWorkspaceMcpResponse {
+  createWorkspaceMcp: {
+    id: number;
+    Mcp: {
+      id: number;
+      name: string;
+      path: string;
+      icon: string;
+      description: string;
+      version: string;
+      createdAt: string;
+      updatedAt: string;
+    };
+    Workspace: {
+      id: string;
+      name: string;
+      sys_instruction: string | null;
+      createdAt: string;
+      userRole: string;
+    };
+    Tools: {
+      id: number;
+      name: string;
+      description: string;
+      examples: string;
+      createdAt: string;
+      updatedAt: string;
+    }[];
+  };
+}
+
+// Mutation function for creating workspace MCP
+export const createWorkspaceMcpMutation = async (
+  variables: CreateWorkspaceMcpVariables
+): Promise<CreateWorkspaceMcpResponse> => {
+  const response = await AxiosFetch.post<
+    ApiResponse<CreateWorkspaceMcpResponse>
+  >("", {
+    query: CreateWorkspaceMcpMutation,
+    variables,
+  });
+
+  return response.data.data as CreateWorkspaceMcpResponse;
+};

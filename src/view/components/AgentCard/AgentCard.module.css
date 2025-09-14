@@ -47,17 +47,32 @@
   .agentCard_tools {
     display: flex;
     justify-content: flex baseline;
-    align-items: center;
+    align-items: stretch;
     flex-wrap: wrap;
     gap: 0.5rem;
 
-    button,
-    span {
-      padding: 0.2rem 0.5rem;
+    > button,
+    > div {
+      flex: 1;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem;
       border-radius: 0.3rem;
       font-size: 0.8rem;
       font-weight: 500;
       color: var(--text-color);
+
+      &.cancelled_tool {
+        background-color: var(--danger-color);
+      }
+
+      button {
+        padding: 0 0.4rem;
+        aspect-ratio: 1;
+        border-radius: 50%;
+      }
     }
   }
 

@@ -1,20 +1,22 @@
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Link, NavLink, useParams, useSearchParams } from "react-router";
+import { NavLink, useNavigate, useParams, useSearchParams } from "react-router";
 import "./TeamsSideBar.css";
 import { AiOutlineRobot } from "react-icons/ai";
 import Button from "../Button/Button";
 import { useActiveTeam } from "../../../stores/team.store";
 import { useTeams } from "../../../hooks/useTeams";
 import Loader from "../Loader/Loader";
+import { useContextMenuHandler } from "../../../hooks/useContextMenuHandler";
 
 const TeamsSideBar = () => {
+  const handleContextMenu = useContextMenuHandler();
+  const nav = useNavigate();
   const [, setSearchParams] = useSearchParams();
   const { wsId } = useParams();
 
   const { setActiveTeam, id: activeTeamId } = useActiveTeam();
 
-  // Shared teams query (current user's teams)
   const {
     data: teamsData,
     isLoading: loadingTeams,
@@ -42,6 +44,14 @@ const TeamsSideBar = () => {
               to={
                 wsId ? `/workspace/${wsId}/team/${team.id}` : `/team/${team.id}`
               }
+              onContextMenu={handleContextMenu([
+                {
+                  name: "Edit",
+                  onClick: () => {
+                    nav(`?edit=team`);
+                  },
+                },
+              ])}
               className={`workspace ${
                 activeTeamId === team.id ? "active" : ""
               }`}
@@ -81,13 +91,13 @@ const TeamsSideBar = () => {
         <FontAwesomeIcon icon={faPlus} />
       </Button>
 
-      <Link
-        to={`/workspace/${wsId}/agents`}
+      <Button
+        href={`/workspace/${wsId}/agents`}
         className="settings tooltip"
         data-tooltip="Workspace Agents"
       >
         <AiOutlineRobot size={25} />
-      </Link>
+      </Button>
     </div>
   );
 };

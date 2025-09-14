@@ -39,3 +39,34 @@ export const fetchMyWorkspaces = async (): Promise<MyWorkspacesResponse> => {
 
   return response.data.data as MyWorkspacesResponse;
 };
+
+// GraphQL query for single workspace
+export const WorkspaceQuery = `
+query Workspace {
+    workspace {
+        createdAt
+        id
+        name
+        sys_instruction
+    }
+}
+`;
+
+// Types for the single workspace query response
+export interface WorkspaceResponse {
+  workspace: {
+    id: string;
+    name: string;
+    sys_instruction: string | null;
+    createdAt: string;
+  };
+}
+
+// Query function for fetching single workspace
+export const fetchWorkspace = async (): Promise<WorkspaceResponse> => {
+  const response = await AxiosFetch.post<ApiResponse<WorkspaceResponse>>("", {
+    query: WorkspaceQuery,
+  });
+
+  return response.data.data as WorkspaceResponse;
+};

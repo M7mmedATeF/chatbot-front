@@ -1,9 +1,10 @@
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router";
+import { useEffect } from "react";
 import "./CreateWorkspace.css";
 import Input from "../../../components/Input/Input";
 import Textarea from "../../../components/Textarea/Textarea";
@@ -11,8 +12,14 @@ import Button from "../../../components/Button/Button";
 import ImageInput from "../../../components/ImageInput/ImageInput";
 import {
   createWorkspaceMutation,
+  updateWorkspaceMutation,
   type CreateWorkspaceVariables,
+  type UpdateWorkspaceVariables,
 } from "../../../../services/Mutations/Workspace.gql";
+import {
+  fetchWorkspace,
+  type WorkspaceResponse,
+} from "../../../../services/Queries/Workspaces.gql";
 import { useActiveWorkspace } from "../../../../stores/workspace.store";
 
 // Zod validation schema
@@ -30,11 +37,28 @@ const createWorkspaceSchema = z.object({
 
 type CreateWorkspaceForm = z.infer<typeof createWorkspaceSchema>;
 
-const CreateWorkspace = () => {
+const CreateWorkspace = ({ editMode = false }: { editMode?: boolean }) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { wsId } = useParams<{ wsId?: string }>();
 
   const { setActiveWorkspace }: any = useActiveWorkspace();
+
+  // Set workspace in session storage when wsId changes (for edit mode)
+  useEffect(() => {
+    if (editMode && wsId) {
+      const workspaceData = { state: { id: wsId } };
+      sessionStorage.setItem("workspace", JSON.stringify(workspaceData));
+    }
+  }, [editMode, wsId]);
+
+  // Fetch workspace data for edit mode
+  const { data: workspaceData, isLoading: isLoadingWorkspace } =
+    useQuery<WorkspaceResponse>({
+      queryKey: ["workspace", wsId],
+      queryFn: fetchWorkspace,
+      enabled: editMode && !!wsId,
+    });
 
   const {
     control,
@@ -48,6 +72,16 @@ const CreateWorkspace = () => {
       sys_instruction: "",
     },
   });
+
+  // Update form when workspace data is loaded
+  useEffect(() => {
+    if (workspaceData?.workspace) {
+      reset({
+        name: workspaceData.workspace.name,
+        sys_instruction: workspaceData.workspace.sys_instruction || "",
+      });
+    }
+  }, [workspaceData, reset]);
 
   const createWorkspace = useMutation({
     mutationFn: createWorkspaceMutation,
@@ -66,20 +100,46 @@ const CreateWorkspace = () => {
     },
   });
 
-  const onSubmit = (data: CreateWorkspaceForm) => {
-    const workspaceData: CreateWorkspaceVariables = {
-      createWorkspaceInput: {
-        name: data.name,
-        sys_instruction: data.sys_instruction || null,
-      },
-    };
+  const updateWorkspace = useMutation({
+    mutationFn: updateWorkspaceMutation,
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+      queryClient.invalidateQueries({ queryKey: ["workspace", wsId] });
+      toast.success("Workspace updated successfully");
+      // Navigate back to workspace
+      setActiveWorkspace(data.updateWorkspace);
+      navigate(`/workspace/${data.updateWorkspace.id}`);
+    },
+    onError: (error: Error) => {
+      toast.error(
+        error.message || "An error occurred while updating the workspace"
+      );
+    },
+  });
 
-    createWorkspace.mutate(workspaceData);
+  const onSubmit = (data: CreateWorkspaceForm) => {
+    if (editMode) {
+      const workspaceData: UpdateWorkspaceVariables = {
+        updateWorkspaceInput: {
+          name: data.name,
+          sys_instruction: data.sys_instruction || null,
+        },
+      };
+      updateWorkspace.mutate(workspaceData);
+    } else {
+      const workspaceData: CreateWorkspaceVariables = {
+        createWorkspaceInput: {
+          name: data.name,
+          sys_instruction: data.sys_instruction || null,
+        },
+      };
+      createWorkspace.mutate(workspaceData);
+    }
   };
 
   return (
     <section className="createWS section-page sys_container">
-      <h2>Create Workspace</h2>
+      <h2>{editMode ? "Edit Workspace" : "Create Workspace"}</h2>
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="headline">
           <h3>Workspace Information</h3>
@@ -120,10 +180,23 @@ const CreateWorkspace = () => {
           <Button
             theme="primary"
             type="submit"
-            disabled={isSubmitting || createWorkspace.isPending}
+            disabled={
+              isSubmitting ||
+              createWorkspace.isPending ||
+              updateWorkspace.isPending ||
+              isLoadingWorkspace
+            }
           >
-            {isSubmitting || createWorkspace.isPending
-              ? "Creating..."
+            {isLoadingWorkspace
+              ? "Loading..."
+              : isSubmitting ||
+                createWorkspace.isPending ||
+                updateWorkspace.isPending
+              ? editMode
+                ? "Updating..."
+                : "Creating..."
+              : editMode
+              ? "Update Workspace"
               : "Create Workspace"}
           </Button>
         </div>

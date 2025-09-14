@@ -75,6 +75,10 @@ const MainRoutes = createBrowserRouter([
             element: <CreateWorkspace />,
           },
           {
+            path: ":wsId/edit",
+            element: <CreateWorkspace editMode />,
+          },
+          {
             path: ":wsId",
             element: <TeamLayout />,
             children: [
@@ -141,10 +145,6 @@ const MainRoutes = createBrowserRouter([
                         ],
                       },
                     ],
-                  },
-                  {
-                    path: "create",
-                    element: <CreateTeam />,
                   },
                 ],
               },

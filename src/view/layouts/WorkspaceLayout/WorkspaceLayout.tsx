@@ -34,6 +34,9 @@ import { useCreateConfig } from "../../../hooks/useCreateConfig";
 import { useListConfigs } from "../../../hooks/useListConfigs";
 import type { ListConfigsResponse } from "../../../services/Queries/Config.gql";
 import Image from "../../components/Image/Image";
+import { useContextMenuHandler } from "../../../hooks/useContextMenuHandler";
+import { RouteParser } from "../../../router/RouteParser";
+import { activeRoutes } from "../../../router/ActiveRoutes";
 
 const WorkspaceLayout = () => {
   const nav = useNavigate();
@@ -133,10 +136,11 @@ const WorkspaceLayout = () => {
 
   // Auto-select workspace from URL if not already active
   useEffect(() => {
+    console.log(workspacesData);
+
     if (wsId && workspacesData?.myWorkspaces && activeWorkspaceId !== wsId) {
-      const workspace = workspacesData.myWorkspaces.find(
-        (ws) => ws.id === wsId
-      );
+      const workspace = workspacesData.myWorkspaces.find((ws) => ws.id == wsId);
+
       if (workspace) {
         setActiveWorkspace({
           id: workspace.id,
@@ -395,6 +399,9 @@ const WorkspaceLayout = () => {
 };
 
 export const SelectWorkspace = () => {
+  const nav = useNavigate();
+  const handleContextMenu = useContextMenuHandler();
+
   const { data: workspaces, isLoading: workspacesLoading } = useWorkspaces();
   return workspaces && workspaces?.myWorkspaces.length > 0 ? (
     <section className="sys_container">
@@ -403,7 +410,21 @@ export const SelectWorkspace = () => {
         {workspaces?.myWorkspaces.map((workspace) => (
           <Button
             className="workspace-card glass-bg"
-            href={`/workspace/${workspace.id}`}
+            href={RouteParser(activeRoutes.workspace.show, {
+              wsId: workspace.id,
+            })}
+            onContextMenu={handleContextMenu([
+              ...(workspace.userRole == "OWNER"
+                ? [
+                    {
+                      name: "Edit",
+                      onClick: () => {
+                        nav(`/workspace/${workspace.id}/edit`);
+                      },
+                    },
+                  ]
+                : []),
+            ])}
           >
             <Image src={bot} alt="workspace" className="avatar" />
             <div>

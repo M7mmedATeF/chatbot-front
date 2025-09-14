@@ -10,7 +10,7 @@
     height: 100%;
     border: 1px solid var(--secondary-text-color);
     border-radius: 0.2rem;
-    padding: 0.2rem 0.7rem 0.4rem;
+    padding: 0.7rem;
     transition: border-color 0.2s ease-in-out;
 
     &:has(input:focus) {

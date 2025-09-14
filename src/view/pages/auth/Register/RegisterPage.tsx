@@ -1,7 +1,7 @@
 import Input from "../../../components/Input/Input";
 import PasswordInput from "../../../components/PasswordInput/PasswordInput";
 import Button from "../../../components/Button/Button";
-import { useRouter } from "../../../../router/useRouter";
+import { RouteParser } from "../../../../router/RouteParser";
 import { activeRoutes } from "../../../../router/ActiveRoutes";
 
 const RegisterPage = () => {
@@ -16,7 +16,7 @@ const RegisterPage = () => {
           <PasswordInput placeholder="Confirm Password" />
           <div className="form-actions">
             <Button
-              href={useRouter(activeRoutes.auth.login)}
+              href={RouteParser(activeRoutes.auth.login)}
               className="forgot-password"
             >
               Already have an account?

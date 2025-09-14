@@ -2,7 +2,7 @@ import Input from "../../../components/Input/Input";
 import PasswordInput from "../../../components/PasswordInput/PasswordInput";
 import Button from "../../../components/Button/Button";
 import "./LoginPage.css";
-import { useRouter as RouterParser } from "../../../../router/useRouter";
+import { RouteParser as RouterParser } from "../../../../router/RouteParser";
 import { activeRoutes } from "../../../../router/ActiveRoutes";
 import { useMutation } from "@tanstack/react-query";
 import useFetch from "../../../../hooks/useFetch";
@@ -26,7 +26,7 @@ const validation = z.object({
   password: z
     .string()
     .regex(
-      /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d=]{7,}$/,
+      /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d=!@#$%^&*()_+]{7,}$/,
       "Password must contain at least 7 characters, one letter, one number, and one special character (!@#$%^&*)"
     ),
 });

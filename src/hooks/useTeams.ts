@@ -5,6 +5,7 @@ import { useActiveWorkspace } from "../stores/workspace.store";
 // Shared hook for current user's teams data
 export const useTeams = () => {
   const { id: activeWorkspaceId } = useActiveWorkspace();
+  console.log(activeWorkspaceId);
 
   return useQuery({
     queryKey: ["my-teams", activeWorkspaceId],
