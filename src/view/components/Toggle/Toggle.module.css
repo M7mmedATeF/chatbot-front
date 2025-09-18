@@ -1,0 +1,36 @@
+.toggle {
+  position: relative;
+  display: inline-block;
+  width: 6cap;
+  height: 3cap;
+  background-color: #fff3;
+  border-radius: 5rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease-out;
+
+  &:has(input:checked) {
+    background-color: var(--tertiary-color);
+  }
+
+  span {
+    position: absolute;
+    top: 50%;
+    inset-inline-start: 4px;
+    translate: 0% -50%;
+    display: inline-block;
+    background-color: #fff;
+    width: 2.2cap;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    transition: inset-inline-start 0.2s ease-out, translate 0.2s ease-in-out;
+  }
+
+  &:has(input:checked) span {
+    inset-inline-start: calc(100% - 4px);
+    translate: -100% -50%;
+  }
+
+  input {
+    display: none;
+  }
+}

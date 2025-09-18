@@ -135,3 +135,56 @@ export interface RemoveMCPResponse {
     }[];
   };
 }
+// GraphQL mutation for listing MCPs for workspace assignment
+export const ListMCPsForWorkspaceMutation = `
+mutation ListMcpsForWorkspace {
+    listMcpsForWorkspace {
+        id
+        name
+        Tools {
+            id
+            name
+            description
+            examples
+            createdAt
+            updatedAt
+        }
+        Requirements {
+            id
+            key
+        }
+        path
+        icon
+        description
+        version
+        createdAt
+        updatedAt
+    }
+}
+`;
+
+// Types for list MCPs for workspace mutation
+export interface ListMCPsForWorkspaceResponse {
+  listMcpsForWorkspace: {
+    id: number;
+    name: string;
+    Tools: {
+      id: number;
+      name: string;
+      description: string;
+      examples: string;
+      createdAt: string;
+      updatedAt: string;
+    }[];
+    Requirements: {
+      id: number;
+      key: string;
+    }[];
+    path: string;
+    icon: string;
+    description: string;
+    version: string;
+    createdAt: string;
+    updatedAt: string;
+  }[];
+}

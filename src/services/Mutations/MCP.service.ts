@@ -3,9 +3,11 @@ import {
   CreateMCPMutation,
   UpdateMCPMutation,
   RemoveMCPMutation,
+  ListMCPsForWorkspaceMutation,
   type CreateMCPVariables,
   type UpdateMCPVariables,
   type RemoveMCPVariables,
+  type ListMCPsForWorkspaceResponse,
 } from "./MCP.gql";
 
 export const createMCP = async ({ createMcpInput }: CreateMCPVariables) => {
@@ -34,3 +36,11 @@ export const removeMCP = async ({ id }: RemoveMCPVariables) => {
 
   return response.data;
 };
+export const listMCPsForWorkspace =
+  async (): Promise<ListMCPsForWorkspaceResponse> => {
+    const response = await AxiosFetch.post(import.meta.env.VITE_GQL_URL, {
+      query: ListMCPsForWorkspaceMutation,
+    });
+
+    return response.data;
+  };

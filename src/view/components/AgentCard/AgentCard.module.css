@@ -74,6 +74,15 @@
         border-radius: 50%;
       }
     }
+
+    > div {
+      justify-content: space-between;
+
+      p {
+        flex: 1;
+        text-align: center;
+      }
+    }
   }
 
   .addControls {

@@ -5,10 +5,22 @@ type CheckboxProps = {
   children: React.ReactNode;
   checked?: boolean;
   onChange?: (checked: boolean) => void;
-  theme?: "primary" | "secondary" | "success" | "warning" | "danger";
-};
+  theme?:
+    | "primary"
+    | "secondary"
+    | "success"
+    | "warning"
+    | "danger"
+    | "tertiary";
+} & React.InputHTMLAttributes<HTMLInputElement>;
 
-const Checkbox = ({ children, checked, onChange, theme }: CheckboxProps) => {
+const Checkbox = ({
+  children,
+  checked,
+  onChange,
+  theme,
+  ...props
+}: CheckboxProps) => {
   return (
     <label
       className={`${style.checkbox} ${checked ? style.checked : ""} ${
@@ -19,6 +31,7 @@ const Checkbox = ({ children, checked, onChange, theme }: CheckboxProps) => {
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange?.(e.target.checked)}
+        {...props}
       />
       <span>{children}</span>
     </label>

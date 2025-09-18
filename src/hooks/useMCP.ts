@@ -4,10 +4,12 @@ import {
   createMCP,
   updateMCP,
   removeMCP,
+  listMCPsForWorkspace,
 } from "../services/Mutations/MCP.service";
 import type {
   CreateMCPInput,
   UpdateMCPInput,
+  ListMCPsForWorkspaceResponse,
 } from "../services/Mutations/MCP.gql";
 import type { MCPItem } from "../services/Queries/MCPs.gql";
 
@@ -17,6 +19,11 @@ export interface UseMCPReturn {
   isLoadingList: boolean;
   listError: Error | null;
   refetch: () => void;
+
+  // List for workspace operations
+  listMCPsForWorkspaceAsync: () => Promise<ListMCPsForWorkspaceResponse>;
+  isListingForWorkspace: boolean;
+  listForWorkspaceError: Error | null;
 
   // Create operations
   createMCPAsync: (data: CreateMCPInput) => Promise<any>;
@@ -45,6 +52,11 @@ export const useMCP = (): UseMCPReturn => {
     refetch,
   } = useListMCPs();
 
+  // List MCPs for workspace mutation
+  const listForWorkspaceMutation = useMutation({
+    mutationFn: listMCPsForWorkspace,
+  });
+
   // Create MCP mutation
   const createMutation = useMutation({
     mutationFn: createMCP,
@@ -70,6 +82,10 @@ export const useMCP = (): UseMCPReturn => {
   });
 
   // Wrapper functions with proper typing
+  const listMCPsForWorkspaceAsync = async () => {
+    return listForWorkspaceMutation.mutateAsync();
+  };
+
   const createMCPAsync = async (data: CreateMCPInput) => {
     return createMutation.mutateAsync({ createMcpInput: data });
   };
@@ -88,6 +104,11 @@ export const useMCP = (): UseMCPReturn => {
     isLoadingList,
     listError,
     refetch,
+
+    // List for workspace operations
+    listMCPsForWorkspaceAsync,
+    isListingForWorkspace: listForWorkspaceMutation.isPending,
+    listForWorkspaceError: listForWorkspaceMutation.error,
 
     // Create operations
     createMCPAsync,

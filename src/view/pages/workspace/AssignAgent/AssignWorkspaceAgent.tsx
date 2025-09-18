@@ -1,32 +1,34 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import "./AssignWorkspaceAgent.css";
 import Input from "../../../components/Input/Input";
 import AgentCard from "../../../components/AgentCard/AgentCard";
-import { useMCP } from "../../../../hooks/useMCP";
-import type { MCPItem, MCPTool } from "../../../../services/Queries/MCPs.gql";
 import { useDebounce } from "../../../../hooks/useDebounce";
 import {
   createWorkspaceMcpMutation,
   type CreateWorkspaceMcpVariables,
   type EnvVariable,
 } from "../../../../services/Mutations/Workspace.gql";
+import { useAvailableWsMcps } from "../../../../hooks/useWorkspaces";
+import type { AvailableWsMcpItem } from "../../../../services/Queries/Workspaces.gql";
+import type { MCPItem } from "../../../../services/Queries/MCPs.gql";
 
 const AssignWorkspaceAgent = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const value = useDebounce(searchTerm, 300);
-  const { mcps, isLoadingList } = useMCP();
+  const { data: mcpsData, isLoading: isLoadingList } = useAvailableWsMcps();
   const queryClient = useQueryClient();
 
   // Filter MCPs based on search term
   const filteredMcps = useMemo(() => {
-    return mcps?.filter(
-      (mcp: MCPItem) =>
+    if (!mcpsData?.listAvailableWsMcps) return [];
+    return mcpsData?.listAvailableWsMcps?.filter(
+      (mcp: AvailableWsMcpItem) =>
         mcp.name.toLowerCase().includes(value.toLowerCase()) ||
         mcp.description.toLowerCase().includes(value.toLowerCase())
     );
-  }, [mcps, value]);
+  }, [mcpsData?.listAvailableWsMcps, value]);
 
   // Mutation for assigning MCP to workspace
   const assignMcpMutation = useMutation({
@@ -44,8 +46,8 @@ const AssignWorkspaceAgent = () => {
 
   // Handle saving/assigning MCP
   const handleSave = (data: {
-    mcp: MCPItem;
-    selectedTools: MCPTool[];
+    mcp: any;
+    selectedTools: any[];
     envVariables: EnvVariable[];
   }) => {
     const { mcp, selectedTools, envVariables } = data;
@@ -78,8 +80,13 @@ const AssignWorkspaceAgent = () => {
           {isLoadingList ? (
             <div className="loading">Loading agents...</div>
           ) : (
-            filteredMcps?.map((mcp: MCPItem) => (
-              <AgentCard key={mcp.id} mcp={mcp} addMode onSave={handleSave} />
+            filteredMcps?.map((mcp: AvailableWsMcpItem) => (
+              <AgentCard
+                key={mcp.id}
+                mcp={mcp as MCPItem}
+                addMode
+                onSave={handleSave}
+              />
             ))
           )}
         </div>

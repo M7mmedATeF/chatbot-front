@@ -1,0 +1,61 @@
+.card_head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+
+  .head_info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    img {
+      width: 40px;
+    }
+
+    p {
+      font-size: 1.4rem;
+      text-transform: capitalize;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
+.description {
+  margin-top: 1rem;
+}
+
+.mcp_list_box {
+  margin-top: 1rem;
+
+  h4 {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+  }
+
+  .tools_list {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0 1rem;
+
+    > * {
+      flex: 1;
+    }
+  }
+
+  .api_config_list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+}
+
+.assign_btn {
+  width: 100%;
+  margin-top: 1rem;
+}

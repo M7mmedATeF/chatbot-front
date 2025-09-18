@@ -28,8 +28,8 @@ const AgentCard = ({
 }: {
   mcp: MCPItem;
   onSave?: (data: {
-    mcp: MCPItem;
-    selectedTools: MCPTool[];
+    mcp: any;
+    selectedTools: any[];
     envVariables: EnvVariable[];
   }) => void;
   onUpdate?: (mcp: MCPItem) => void;
@@ -141,7 +141,7 @@ const AgentCard = ({
                       <AiOutlineClose size={8} />
                     </Button>
                   )}
-                  {tool.name}
+                  <p>{tool.name}</p>
                 </div>
               ))}
               {!opened && mcp.Tools.length > MAX_VIEW_ITEMS && (
@@ -174,7 +174,7 @@ const AgentCard = ({
                   >
                     <AiOutlineClose size={11} />
                   </Button>
-                  {tool.name}
+                  <p>{tool.name}</p>
                 </div>
               ))}
             </div>
@@ -203,7 +203,7 @@ const AgentCard = ({
                       <AiOutlineArrowLeft size={11} />
                     </Button>
                   )}
-                  {tool.name}
+                  <p>{tool.name}</p>
                 </div>
               ))}
             </div>
@@ -222,7 +222,7 @@ const AgentCard = ({
                   : MAX_VIEW_ITEMS
               ).map((requirement: MCPRequirement) => (
                 <div key={requirement.id} className="glass-bg">
-                  {requirement.key}
+                  <p>{requirement.key}</p>
                 </div>
               ))}
               {!opened && mcp.Tools.length > MAX_VIEW_ITEMS && (

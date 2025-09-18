@@ -4,15 +4,15 @@ import Input from "../../../components/Input/Input";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import Button from "../../../components/Button/Button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import AgentCard from "../../../components/AgentCard/AgentCard";
 import Modal from "../../../components/Modal/Modal";
-import { useMCP } from "../../../../hooks/useMCP";
-import type { MCPItem } from "../../../../services/Queries/MCPs.gql";
+import { useAvailableWsMcps } from "../../../../hooks/useWorkspaces";
+import type { AvailableWsMcpItem } from "../../../../services/Queries/Workspaces.gql";
+import McpAssignCard from "../../../components/McpAssignCard/McpAssignCard";
 
 const WorkspaceAgentsList = () => {
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
-  const { mcps, isLoadingList } = useMCP();
+  const { data: mcpsData, isLoading: isLoadingList } = useAvailableWsMcps();
 
   return (
     <section className="workspace-agents section-page sys_container">
@@ -30,9 +30,22 @@ const WorkspaceAgentsList = () => {
           {isLoadingList ? (
             <div className="loading">Loading agents...</div>
           ) : (
-            mcps?.map((mcp: MCPItem) => (
-              <AgentCard key={mcp.id} mcp={mcp} editMode onSave={() => {}} />
-            ))
+            <>
+              <div className="agents-list-column">
+                {mcpsData?.listAvailableWsMcps
+                  ?.filter((_, idx: number) => idx % 2 === 0)
+                  .map((workspaceMcp: AvailableWsMcpItem) => (
+                    <McpAssignCard key={workspaceMcp.id} mcp={workspaceMcp} />
+                  ))}
+              </div>
+              <div className="agents-list-column">
+                {mcpsData?.listAvailableWsMcps
+                  ?.filter((_, idx: number) => idx % 2 === 1)
+                  .map((workspaceMcp: AvailableWsMcpItem) => (
+                    <McpAssignCard key={workspaceMcp.id} mcp={workspaceMcp} />
+                  ))}
+              </div>
+            </>
           )}
         </div>
       </form>
