@@ -42,5 +42,5 @@ export const listMCPsForWorkspace =
       query: ListMCPsForWorkspaceMutation,
     });
 
-    return response.data;
+    return response.data as any;
   };
