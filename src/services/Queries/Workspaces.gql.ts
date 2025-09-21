@@ -90,18 +90,17 @@ query ListAvailableWsMcps {
             examples
             createdAt
             updatedAt
+            isSelected
         }
         Requirements {
             id
             key
         }
-        Env {
+        isSelected
+        Envs {
             id
-            name
-            description
-            examples
-            createdAt
-            updatedAt
+            key
+            value
         }
     }
 }
@@ -110,30 +109,34 @@ query ListAvailableWsMcps {
 
 // Types for the list available workspace MCPs query response
 export interface AvailableWsMcpItem {
-  id: number;
+  id: string;
   name: string;
   path: string;
   icon: string;
   description: string;
   version: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
   Tools: {
-    id: number;
+    id: string;
     name: string;
     description: string;
     examples: string;
-    createdAt: string;
-    updatedAt: string;
+    createdAt: Date;
+    updatedAt: Date;
+    isSelected: boolean;
   }[];
   Requirements: {
-    id: number;
+    id: string;
     key: string;
   }[];
-  Env: {
-    id: number;
-    name: string;
+  isSelected: boolean;
+  Envs: {
+    id: string;
+    key: string;
+    value: string;
   }[];
+  workspaceMcpId?: number;
 }
 
 export interface ListAvailableWsMcpsResponse {

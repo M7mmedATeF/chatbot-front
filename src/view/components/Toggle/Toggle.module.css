@@ -12,6 +12,22 @@
     background-color: var(--tertiary-color);
   }
 
+  &.success:has(input:checked) {
+    background-color: var(--success-color);
+  }
+
+  &.warning:has(input:checked) {
+    background-color: var(--warning-color);
+  }
+
+  &.danger:has(input:checked) {
+    background-color: var(--danger-color);
+  }
+
+  &.tertiary:has(input:checked) {
+    background-color: var(--tertiary-color);
+  }
+
   span {
     position: absolute;
     top: 50%;

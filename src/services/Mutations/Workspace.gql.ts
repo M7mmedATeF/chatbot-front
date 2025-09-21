@@ -217,3 +217,176 @@ export const createWorkspaceMcpMutation = async (
 
   return response.data.data as CreateWorkspaceMcpResponse;
 };
+
+// Service function for creating workspace MCP using AxiosFetch
+export const createWorkspaceMcp = async (
+  variables: CreateWorkspaceMcpVariables
+) => {
+  const response = await AxiosFetch.post(import.meta.env.VITE_GQL_URL, {
+    query: CreateWorkspaceMcpMutation,
+    variables,
+  });
+
+  return response.data;
+};
+
+// GraphQL mutation string for removing workspace MCP
+export const RemoveWorkspaceMcpMutation = `
+mutation RemoveWorkspaceMcp($id: Int!) {
+    removeWorkspaceMcp(id: $id) {
+        success
+        message
+    }
+}
+`;
+
+// Types for the remove workspace MCP mutation
+export interface RemoveWorkspaceMcpVariables {
+  id: number;
+}
+
+export interface RemoveWorkspaceMcpResponse {
+  removeWorkspaceMcp: {
+    success: boolean;
+    message: string;
+  };
+}
+
+// Mutation function for removing workspace MCP
+export const removeWorkspaceMcpMutation = async (
+  variables: RemoveWorkspaceMcpVariables
+): Promise<RemoveWorkspaceMcpResponse> => {
+  const response = await AxiosFetch.post<
+    ApiResponse<RemoveWorkspaceMcpResponse>
+  >("", {
+    query: RemoveWorkspaceMcpMutation,
+    variables,
+  });
+
+  return response.data.data as RemoveWorkspaceMcpResponse;
+};
+
+// Service function for removing workspace MCP using AxiosFetch
+export const removeWorkspaceMcp = async (
+  variables: RemoveWorkspaceMcpVariables
+) => {
+  const response = await AxiosFetch.post(import.meta.env.VITE_GQL_URL, {
+    query: RemoveWorkspaceMcpMutation,
+    variables,
+  });
+
+  return response.data;
+};
+
+// GraphQL mutation string for updating workspace MCP
+export const UpdateWorkspaceMcpMutation = `
+mutation UpdateWorkspaceMcp($updateWorkspaceMcpInput: UpdateWorkspaceMcpInput!) {
+    updateWorkspaceMcp(updateWorkspaceMcpInput: $updateWorkspaceMcpInput) {
+        id
+        Workspace {
+            id
+            name
+            sys_instruction
+            createdAt
+            userRole
+        }
+        Mcp {
+            id
+            name
+            path
+            icon
+            description
+            version
+            createdAt
+            updatedAt
+        }
+        Tools {
+            id
+            name
+            description
+            examples
+            createdAt
+            updatedAt
+        }
+        Envs {
+            id
+            key
+            value
+        }
+    }
+}
+`;
+
+// Types for the update workspace MCP mutation
+export interface UpdateWorkspaceMcpVariables {
+  updateWorkspaceMcpInput: {
+    workspaceMcpId: number;
+    toolsIds: number[];
+    env: Array<{
+      key: string;
+      value: string;
+    }>;
+  };
+}
+
+export interface UpdateWorkspaceMcpResponse {
+  updateWorkspaceMcp: {
+    id: number;
+    Workspace: {
+      id: string;
+      name: string;
+      sys_instruction: string | null;
+      createdAt: string;
+      userRole: string;
+    };
+    Mcp: {
+      id: number;
+      name: string;
+      path: string;
+      icon: string;
+      description: string;
+      version: string;
+      createdAt: string;
+      updatedAt: string;
+    };
+    Tools: {
+      id: number;
+      name: string;
+      description: string;
+      examples: string;
+      createdAt: string;
+      updatedAt: string;
+    }[];
+    Envs: {
+      id: number;
+      key: string;
+      value: string;
+    }[];
+  };
+}
+
+// Mutation function for updating workspace MCP
+export const updateWorkspaceMcpMutation = async (
+  variables: UpdateWorkspaceMcpVariables
+): Promise<UpdateWorkspaceMcpResponse> => {
+  const response = await AxiosFetch.post<
+    ApiResponse<UpdateWorkspaceMcpResponse>
+  >("", {
+    query: UpdateWorkspaceMcpMutation,
+    variables,
+  });
+
+  return response.data.data as UpdateWorkspaceMcpResponse;
+};
+
+// Service function for updating workspace MCP using AxiosFetch
+export const updateWorkspaceMcp = async (
+  variables: UpdateWorkspaceMcpVariables
+) => {
+  const response = await AxiosFetch.post(import.meta.env.VITE_GQL_URL, {
+    query: UpdateWorkspaceMcpMutation,
+    variables,
+  });
+
+  return response.data;
+};

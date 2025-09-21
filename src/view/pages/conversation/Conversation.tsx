@@ -198,7 +198,7 @@ const Conversation = () => {
           : tabSize - containerBoundry.left;
       console.log(ratio);
 
-      if (ratio <= 150) {
+      if (ratio <= 50) {
         ratio = 0;
         setTabSize(0);
       }

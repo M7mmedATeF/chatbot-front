@@ -15,6 +15,7 @@ type modalProps = {
   onClose: () => void;
   onReset?: () => void;
   isLoading?: boolean;
+  cancellable?: boolean;
 };
 
 const Modal = ({
@@ -27,6 +28,7 @@ const Modal = ({
   onClose,
   size = "sm",
   isLoading = false,
+  cancellable = false,
 }: modalProps) => {
   return (
     <div
@@ -54,6 +56,11 @@ const Modal = ({
             {onSave && (
               <Button theme="primary" onClick={onSave} disabled={isLoading}>
                 {isLoading ? <Loader /> : "Save"}
+              </Button>
+            )}
+            {cancellable && (
+              <Button theme="danger" onClick={onClose} disabled={isLoading}>
+                Cancel
               </Button>
             )}
           </div>
