@@ -41,8 +41,6 @@ const LoginPage = ({ isAdmin = false }) => {
   const { setUser }: any = useUser();
 
   const login = async (formdata: z.infer<typeof validation>) => {
-    console.log("formdata", formdata);
-
     const loginMutation = isAdmin ? AdminLogin : UserLogin;
     const response = await fetch(
       loginMutation,

@@ -178,7 +178,7 @@ const McpAssignCard = ({
       // إعداد بيانات الـ mutation
       const mutationData = {
         updateWorkspaceMcpInput: {
-          workspaceMcpId: mcp.workspaceMcpId,
+          mcpId: mcp.id,
           toolsIds: selectedToolsIds,
           env: envVariables,
         },
@@ -192,7 +192,6 @@ const McpAssignCard = ({
       );
 
       onUpdate();
-      setShowAssign(false);
     } catch (error) {
       console.error("فشل في تحديث MCP:", error);
     }
@@ -334,12 +333,12 @@ const McpAssignCard = ({
 
       <Modal
         open={!!deleteId}
-        title="Delete MCP"
+        title="Delete Agent"
         onClose={() => setDeleteId(null)}
         onSave={handleDeleteMethod}
         cancellable
       >
-        <p>Are you sure you want to delete this MCP from the workspace?</p>
+        <p>Are you sure you want to delete this Agent from the workspace?</p>
       </Modal>
     </>
   );

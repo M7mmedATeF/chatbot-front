@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import "./AdminMCPsList.css";
 import Input from "../../../components/Input/Input";
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
 import Button from "../../../components/Button/Button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import AgentCard from "../../../components/AgentCard/AgentCard";
@@ -10,11 +10,26 @@ import ImageInput from "../../../components/ImageInput/ImageInput";
 import { useMCP } from "../../../../hooks/useMCP";
 import { useDebounce } from "../../../../hooks/useDebounce";
 import ListInput from "../../../components/ListInput/ListInput";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import Loader from "../../../components/Loader/Loader";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { MCPItem } from "../../../../services/Queries/MCPs.gql";
+import Dropdown from "../../../components/Dropdown/Dropdown";
+import CodeInput from "../../../components/CodeInput/CodeInput";
+
+export type MCPType =
+  | "NODE"
+  | "PYTHON"
+  | "GO"
+  | "KOTLIN"
+  | "SWIFT"
+  | "JAVA"
+  | "CS"
+  | "RUBY"
+  | "RUST"
+  | "PHP"
+  | "OTHERS";
 
 const createMCPSchema = z.object({
   icon: z.string().nonempty({
@@ -22,9 +37,20 @@ const createMCPSchema = z.object({
   }),
   name: z.string().min(1),
   description: z.string().min(3),
-  path: z.string().min(1).endsWith(".js", {
-    error: "Path must end with .js",
-  }),
+  path: z.string().min(1),
+  type: z.enum([
+    "NODE",
+    "PYTHON",
+    "GO",
+    "KOTLIN",
+    "SWIFT",
+    "JAVA",
+    "CS",
+    "RUBY",
+    "RUST",
+    "PHP",
+  ]),
+  command: z.string().optional(),
   requirements: z.array(
     z
       .string()
@@ -40,12 +66,10 @@ const createMCPSchema = z.object({
   ),
   tools: z
     .array(
-      z.string().min(3, {
-        error: "Tools must be at least 3 character",
-      }),
-      {
-        message: "Tools must be a valid string starts with A-Z",
-      }
+      z.object({
+        name: z.string().min(3),
+        description: z.string().min(3),
+      })
     )
     .min(1, {
       error: "Tools must be at least 1 tool",
@@ -56,9 +80,31 @@ const createMCPSchema = z.object({
       error: "Version must be a valid semver",
     })
     .min(1),
+  tabs: z
+    .array(
+      z.object({
+        is_main: z.boolean(),
+        code: z.string().min(0),
+      })
+    )
+    .min(1),
 });
 
 type CreateMCPFormData = z.infer<typeof createMCPSchema>;
+
+const Environments = [
+  "NODE",
+  "PYTHON",
+  // "GO",
+  // "KOTLIN",
+  // "SWIFT",
+  // "JAVA",
+  // "CS",
+  // "RUBY",
+  // "RUST",
+  // "PHP",
+  "OTHERS",
+];
 
 const AdminMCPsList = () => {
   const [search, setSearch] = useState("");
@@ -71,9 +117,22 @@ const AdminMCPsList = () => {
     handleSubmit,
     reset,
     formState: { errors },
+    watch,
   } = useForm<CreateMCPFormData>({
     resolver: zodResolver(createMCPSchema),
+    defaultValues: {
+      tools: [{ name: "", description: "" }],
+      tabs: [{ code: "", is_main: true }],
+      requirements: [],
+      type: "NODE" as const,
+      icon: "",
+      name: "",
+      description: "",
+      path: "",
+      version: "",
+    },
   });
+  const FormValues = watch();
 
   const {
     mcps,
@@ -134,10 +193,14 @@ const AdminMCPsList = () => {
 
   // Helper function to process tools deletions and additions
   const processToolsChanges = (
-    currentTools: string[],
+    currentTools: { name: string; description: string }[],
     originalTools: { id: number; name: string; description?: string }[]
   ) => {
     const originalToolStrings = originalTools.map(
+      (t) => `${t.name}: ${t.description || ""}`
+    );
+
+    const currentToolStrings = currentTools.map(
       (t) => `${t.name}: ${t.description || ""}`
     );
 
@@ -145,16 +208,16 @@ const AdminMCPsList = () => {
     const deleteTools = originalTools
       .filter((t) => {
         const toolString = `${t.name}: ${t.description || ""}`;
-        return !currentTools.includes(toolString);
+        return !currentToolStrings.includes(toolString);
       })
       .map((t) => t.id);
 
     // Find new tools (exist in current but not in original)
     const newTools = currentTools
-      .filter((t) => !originalToolStrings.includes(t))
+      .filter((t) => !originalToolStrings.includes(t.name))
       .map((t) => ({
-        name: t.split(":")?.[0]?.trim() || "",
-        description: t.split(":")?.[1]?.trim() || "",
+        name: t.name.trim() || "",
+        description: t.description.trim() || "",
       }));
 
     return {
@@ -215,8 +278,8 @@ const AdminMCPsList = () => {
           path: formdata.path,
           requirements: formdata.requirements,
           tools: formdata.tools.map((t) => ({
-            name: t.split(":")?.[0].trim() || "",
-            description: t.split(":")?.[1]?.trim() || "",
+            name: t.name.trim() || "",
+            description: t.description.trim() || "",
           })),
           version: formdata.version,
         });
@@ -229,13 +292,19 @@ const AdminMCPsList = () => {
   };
 
   const openForm = (mcp?: MCPItem) => {
+    console.log(mcp);
     reset({
       icon: mcp?.icon || "",
       name: mcp?.name || "",
       description: mcp?.description || "",
       path: mcp?.path || "",
       requirements: mcp?.Requirements?.map((r) => r.key || "") || [],
-      tools: mcp?.Tools?.map((t) => `${t.name}: ${t.description || ""}`) || [],
+      type: (mcp?.type as any) || "NODE",
+      command: mcp?.command || "",
+      tools: mcp?.Tools.map((t) => ({
+        name: t.name.split(": ")?.[0] || "",
+        description: t.name.split(": ")?.[1] || "",
+      })) || [{ name: "", description: "" }],
       version: mcp?.version || "",
     });
     setShowCreate(mcp || true);
@@ -257,6 +326,16 @@ const AdminMCPsList = () => {
     await deleteMCPAsync(mcp.id);
     setShowDelete(false);
   };
+
+  const {
+    fields: tools,
+    append: addTool,
+    remove: removeTool,
+  } = useFieldArray({
+    control,
+    name: "tools",
+    shouldUnregister: true,
+  });
 
   return (
     <section className="admin-agents section-page sys_container">
@@ -327,6 +406,7 @@ const AdminMCPsList = () => {
         open={!!showCreate}
         title={editMode ? "Edit MCP" : "Create New MCP"}
         onClose={() => setShowCreate(false)}
+        size="md"
       >
         <form onSubmit={handleSubmit(onSubmit)} className="create-agent-form">
           <Controller
@@ -355,95 +435,159 @@ const AdminMCPsList = () => {
             )}
           />
 
-          <Controller
-            control={control}
-            name="name"
-            render={({ field, fieldState }) => (
-              <Input
-                label="MCP Name"
-                value={field.value}
-                onChange={field.onChange}
-                error={fieldState.error?.message}
-                placeholder="eg: Notion, Shopify, etc."
-              />
-            )}
-          />
+          <div className="form-columns-splitting">
+            <Controller
+              control={control}
+              name="name"
+              render={({ field, fieldState }) => (
+                <Input
+                  label="MCP Name"
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={fieldState.error?.message}
+                  placeholder="eg: Notion, Shopify, etc."
+                />
+              )}
+            />
 
-          <Controller
-            control={control}
-            name="description"
-            render={({ field, fieldState }) => (
-              <Input
-                label="Description"
-                value={field.value}
-                onChange={field.onChange}
-                error={fieldState.error?.message}
-                placeholder="eg: Control notion account"
-              />
-            )}
-          />
+            <Controller
+              control={control}
+              name="description"
+              render={({ field, fieldState }) => (
+                <Input
+                  label="Description"
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={fieldState.error?.message}
+                  placeholder="eg: Control notion account"
+                />
+              )}
+            />
 
-          <Controller
-            control={control}
-            name="path"
-            render={({ field, fieldState }) => (
-              <Input
-                label="Path"
-                value={field.value}
-                onChange={field.onChange}
-                error={fieldState.error?.message}
-                placeholder="eg: notion_MCP/notion_mcp.js"
+            <div className="form-columns-splitting">
+              <Controller
+                control={control}
+                name="type"
+                render={({ field, fieldState }) => (
+                  <Dropdown
+                    label="Mcp Environment"
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={fieldState.error?.message}
+                    options={Environments}
+                    placeholder="eg: NODE, PYTHON, GO, etc."
+                  />
+                )}
               />
-            )}
-          />
 
-          <Controller
-            control={control}
-            defaultValue={[]}
-            name="requirements"
-            render={({ field, fieldState }) => (
-              <ListInput
-                label="Requirements"
-                placeholder="eg: NOTION_API_KEY,NOTION_VERSION"
-                value={field.value}
-                onChange={field.onChange}
-                Uppercase
-                NoSpaces
-                error={
-                  fieldState.error?.message || errors.requirements?.[0]?.message
-                }
-              />
-            )}
-          />
+              {(FormValues.type as string) === "OTHERS" && (
+                <Controller
+                  control={control}
+                  name="command"
+                  shouldUnregister
+                  render={({ field, fieldState }) => (
+                    <Input
+                      label="Mcp Environment Code"
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="eg: uv.py, go.mod, etc."
+                      error={fieldState.error?.message}
+                    />
+                  )}
+                />
+              )}
+            </div>
 
-          <Controller
-            control={control}
-            defaultValue={[]}
-            name="tools"
-            render={({ field, fieldState }) => (
-              <ListInput
-                label="Tools"
-                placeholder="Tool Name: Tool Description"
-                value={field.value}
-                onChange={field.onChange}
-                error={fieldState.error?.message || errors.tools?.[0]?.message}
-              />
-            )}
-          />
+            <Controller
+              control={control}
+              name="version"
+              render={({ field, fieldState }) => (
+                <Input
+                  label="Version"
+                  placeholder="0.1.0"
+                  value={field.value}
+                  onChange={field.onChange}
+                  error={fieldState.error?.message}
+                />
+              )}
+            />
 
-          <Controller
-            control={control}
-            name="version"
-            render={({ field, fieldState }) => (
-              <Input
-                label="Version"
-                placeholder="0.1.0"
-                value={field.value}
-                onChange={field.onChange}
-                error={fieldState.error?.message}
+            <div className="full-w">
+              <Controller
+                control={control}
+                defaultValue={[]}
+                name="requirements"
+                render={({ field, fieldState }) => (
+                  <ListInput
+                    label="Requirements"
+                    placeholder="eg: NOTION_API_KEY,NOTION_VERSION"
+                    value={field.value}
+                    onChange={field.onChange}
+                    Uppercase
+                    NoSpaces
+                    error={
+                      fieldState.error?.message ||
+                      errors.requirements?.[0]?.message
+                    }
+                  />
+                )}
               />
-            )}
-          />
+            </div>
+
+            {tools.map((tool, index) => (
+              <Fragment key={tool.id}>
+                <Controller
+                  control={control}
+                  name={`tools.${index}.name`}
+                  render={({ field, fieldState }) => (
+                    <Input
+                      label={`Tool Name [${index + 1}]`}
+                      value={field.value}
+                      onChange={field.onChange}
+                      error={fieldState.error?.message}
+                      placeholder="eg: Tool Name"
+                    />
+                  )}
+                />
+                <div className="tool-list-input">
+                  <Controller
+                    control={control}
+                    name={`tools.${index}.description`}
+                    render={({ field, fieldState }) => (
+                      <Input
+                        label={`Tool Description [${index + 1}]`}
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="eg: Tool Description"
+                        error={fieldState.error?.message}
+                      />
+                    )}
+                  />
+                  {index === tools.length - 1 ? (
+                    <Button
+                      theme="primary"
+                      onClick={() => addTool({ name: "", description: "" })}
+                      tabIndex={-1}
+                    >
+                      <FontAwesomeIcon icon={faPlus} />
+                    </Button>
+                  ) : (
+                    <Button
+                      theme="danger"
+                      onClick={() => removeTool(index)}
+                      tabIndex={-1}
+                    >
+                      <FontAwesomeIcon icon={faTrash} />
+                    </Button>
+                  )}
+                </div>
+              </Fragment>
+            ))}
+
+            <div className="full-w">
+              <CodeInput control={control} name="tabs" />
+            </div>
+          </div>
 
           <div className="flex justify-end">
             <Button

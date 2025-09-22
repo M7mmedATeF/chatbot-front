@@ -11,11 +11,14 @@
     border: 1px solid var(--secondary-text-color);
     border-radius: 0.2rem;
     padding: 0.7rem;
-    padding-top: 0.2rem;
     transition: border-color 0.2s ease-in-out;
 
     &:has(input:focus) {
       border-color: var(--primary-color);
+    }
+
+    &:has(.label) {
+      padding-top: 0.2rem;
     }
   }
 

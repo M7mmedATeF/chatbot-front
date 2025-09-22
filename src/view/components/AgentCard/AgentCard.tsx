@@ -225,7 +225,7 @@ const AgentCard = ({
                   <p>{requirement.key}</p>
                 </div>
               ))}
-              {!opened && mcp.Tools.length > MAX_VIEW_ITEMS && (
+              {!opened && mcp.Requirements.length > MAX_VIEW_ITEMS && (
                 <Button
                   theme="secondary"
                   type="button"

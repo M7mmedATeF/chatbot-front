@@ -1,0 +1,118 @@
+.inputWrapper {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  isolation: isolate; /* Create new stacking context */
+
+  .dropdownList {
+    position: absolute;
+    inset-inline: 0;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-10px);
+    border-radius: 0.2rem;
+    padding: 0.3rem;
+    background-color: #fefefe;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 0 0.5rem 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease-in-out;
+    max-height: 20svh;
+    overflow-y: auto;
+    z-index: 1000;
+    /* Prevent clipping by parent containers */
+    contain: none;
+
+    &.open {
+      pointer-events: all;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    &.bottom {
+      top: 100%;
+      border-radius: 0 0 0.2rem 0.2rem;
+    }
+
+    &.top {
+      bottom: 100%;
+      border-radius: 0.2rem 0.2rem 0 0;
+    }
+
+    /* Handle horizontal positioning adjustments */
+    &[style*="start: 0"] {
+      inset-inline-start: 0 !important;
+      inset-inline-end: auto !important;
+    }
+
+    &[style*="end: 0"] {
+      inset-inline-end: 0 !important;
+      inset-inline-start: auto !important;
+    }
+
+    li:not(:last-child) {
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    li {
+      border-radius: 0.2rem;
+      transition: 0.3s all ease-in-out;
+    }
+
+    li:hover,
+    li:has(.active) {
+      button {
+        background-color: var(--primary-color);
+        color: #fff;
+      }
+    }
+
+    button,
+    a {
+      width: 100%;
+      justify-content: flex-start;
+      color: inherit;
+    }
+  }
+
+  .input {
+    width: 100%;
+    height: 100%;
+    border: 1px solid var(--secondary-text-color);
+    border-radius: 0.2rem;
+    padding: 0.7rem;
+    transition: border-color 0.2s ease-in-out;
+
+    &:has(input:focus) {
+      border-color: var(--primary-color);
+    }
+
+    &:has(.label) {
+      padding-top: 0.2rem;
+    }
+  }
+
+  input {
+    background-color: transparent;
+    color: currentColor;
+    width: 100%;
+  }
+
+  .label {
+    text-transform: capitalize;
+    font-size: 0.7em;
+  }
+
+  .error {
+    background-color: var(--danger-color);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    padding: 0.2rem 0.5rem;
+    width: 100%;
+    border-radius: 0.2rem;
+    color: #fff;
+  }
+}

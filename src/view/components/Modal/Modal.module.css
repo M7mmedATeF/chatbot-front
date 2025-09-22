@@ -28,6 +28,7 @@
     background-color: var(--text-color);
     color: var(--bg-color);
     padding: 2rem;
+    padding-top: 0;
     border-radius: 0.5rem;
     width: 70vw;
     max-width: 95vw;
@@ -41,14 +42,17 @@
     .modalHeader {
       display: flex;
       position: sticky;
+      z-index: 100;
       top: 0;
       background: inherit;
       justify-content: space-between;
       align-items: center;
       gap: 0.5rem;
-      padding-bottom: 1rem;
       margin-bottom: 1rem;
       border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+      margin-inline: -2rem;
+      padding: 2rem;
+      padding-bottom: 1rem;
 
       button {
         color: var(--bg-color);

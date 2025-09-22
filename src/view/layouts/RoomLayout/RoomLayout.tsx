@@ -158,20 +158,7 @@ const RoomLayout = () => {
           ) : (roomsData?.myRooms || []).length > 0 ? (
             (roomsData?.myRooms || []).map((room) => (
               <div key={room.id}>
-                <NavLink
-                  to={`room/${room.id}`}
-                  className={`room-item ${
-                    activeRoomId === room.id.toString() ? "active" : ""
-                  }`}
-                  onClick={() =>
-                    setActiveRoom({
-                      id: room.id.toString(), // Convert to string for store
-                      name: room.name,
-                      createdAt: room.createdAt,
-                      updatedAt: room.updatedAt,
-                    })
-                  }
-                >
+                <NavLink to={`room/${room.id}`} end className={`room-item`}>
                   {room.name}
                 </NavLink>
               </div>

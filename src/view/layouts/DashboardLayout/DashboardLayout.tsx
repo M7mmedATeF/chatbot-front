@@ -9,9 +9,20 @@ import {
 } from "react-icons/ai";
 import { useState } from "react";
 import { PiToolboxLight } from "react-icons/pi";
+import { useUser } from "../../../stores/user.store";
 
 const DashboardLayout = () => {
+  // const nav = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
+  const { removeUser }: any = useUser();
+
+  // useEffect(() => {
+  //   console.log(user)
+  //   if (!user) {
+  //     nav("/auth/login/admin");
+  //   }
+  // }, [user]);
+
   return (
     <section className={`dashboard-layout ${collapsed ? "collapsed" : ""}`}>
       <nav className="side-nav glass-bg">
@@ -42,7 +53,7 @@ const DashboardLayout = () => {
 
         <ul>
           <li>
-            <Button theme="danger">
+            <Button theme="danger" onClick={removeUser}>
               <AiOutlineLogout />
               <span>Logout</span>
             </Button>

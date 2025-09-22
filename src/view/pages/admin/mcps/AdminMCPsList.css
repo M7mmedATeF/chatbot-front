@@ -116,9 +116,40 @@
 
     .mcp-image-input {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+      grid-template-columns: 150px minmax(0, 2fr);
       align-items: center;
       gap: 1rem;
+    }
+
+    .form-columns-splitting {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: inherit;
+
+      > * {
+        flex: 1;
+        min-width: calc(50% - 0.5rem);
+      }
+
+      > .full-w {
+        min-width: 100%;
+      }
+    }
+
+    .tool-list-input {
+      display: flex;
+      align-items: center;
+      gap: inherit;
+
+      button {
+        padding: 0 0.6rem;
+        aspect-ratio: 1;
+        border-radius: 0.2rem;
+        font-size: 0.8rem;
+        outline: none;
+      }
     }
 
     > * {

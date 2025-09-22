@@ -37,7 +37,6 @@ const Conversation = () => {
   const {
     messages: chatMessages,
     toolData,
-    isConnected,
     isStreaming,
     sendMessage: sendChatMessage,
     cachedMessagesToolCalls,
@@ -146,7 +145,13 @@ const Conversation = () => {
     }
   }, [message, isStreaming, sendChatMessage]);
 
-  const showMessageProcessingCalls = (messageId: number | string) => {
+  const showMessageProcessingCalls = (messageId: number | string | null) => {
+    if (messageId === null) {
+      setShowLiveCalls(false);
+      setSelectedMessageId(null);
+      setTabSize(0);
+      return;
+    }
     setShowLiveCalls(false);
     setSelectedMessageId(messageId);
     setTabSize(defaultSize);
@@ -196,7 +201,6 @@ const Conversation = () => {
         tabSize < containerBoundry.left
           ? tabSize
           : tabSize - containerBoundry.left;
-      console.log(ratio);
 
       if (ratio <= 50) {
         ratio = 0;
@@ -205,6 +209,11 @@ const Conversation = () => {
       tabContainerRef.current.style.gridTemplateColumns = `${ratio}px minmax(0, 1fr)`;
     }
   }, [tabSize]);
+
+  useEffect(() => {
+    showMessageProcessingCalls(null);
+    console.log("close");
+  }, [roomId]);
 
   return (
     <section
@@ -367,14 +376,10 @@ const Conversation = () => {
           </div>
         </div>
       </div>
-      <div className="conversation-footer">
+      <div className="conversation-footer glass-bg">
         <Textarea
           placeholder={
-            isStreaming
-              ? "Waiting for response..."
-              : isConnected
-              ? "Enter your message"
-              : "Connecting..."
+            isStreaming ? "Waiting for response..." : "Enter your message"
           }
           value={message}
           onChange={(e: any) => setMessage(e)}

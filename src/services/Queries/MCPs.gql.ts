@@ -1,3 +1,4 @@
+import type { MCPType } from "../../view/pages/admin/mcps/AdminMCPsList";
 import AxiosFetch from "../AxiosFetch";
 import type { ApiResponse } from "../AxiosFetch";
 
@@ -13,6 +14,8 @@ query Mcps {
         path
         updatedAt
         version
+        type
+        command
         Tools {
             createdAt
             description
@@ -53,6 +56,8 @@ export interface MCPItem {
   path: string;
   updatedAt: string;
   version: string;
+  type: MCPType;
+  command: string;
   Tools: MCPTool[];
   Requirements: MCPRequirement[];
 }

@@ -6,6 +6,7 @@ import {
   useParams,
   useSearchParams,
 } from "react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useForm, Controller } from "react-hook-form";
 import "./WorkspaceLayout.css";
 import bot from "../../../assets/images/bot.png";
@@ -44,6 +45,7 @@ const WorkspaceLayout = () => {
   const { pathname } = useLocation();
   const { wsId, teamId } = useParams();
   const { updateTeamId, updateWsId } = useControllerContext();
+  const queryClient = useQueryClient();
 
   // Configuration modal state
   const [showConfigModal, setShowConfigModal] = useState(false);
@@ -136,8 +138,6 @@ const WorkspaceLayout = () => {
 
   // Auto-select workspace from URL if not already active
   useEffect(() => {
-    console.log(workspacesData);
-
     if (wsId && workspacesData?.myWorkspaces && activeWorkspaceId !== wsId) {
       const workspace = workspacesData.myWorkspaces.find((ws) => ws.id == wsId);
 
@@ -184,6 +184,26 @@ const WorkspaceLayout = () => {
       });
     }
   }, [configsData, reset]);
+
+  // Invalidate rooms list when active team changes
+  useEffect(() => {
+    if (activeTeamId) {
+      queryClient.invalidateQueries({
+        queryKey: ["rooms", activeTeamId],
+        exact: false,
+      });
+    }
+  }, [activeTeamId, queryClient]);
+
+  // Invalidate teams list when active workspace changes
+  useEffect(() => {
+    if (activeWorkspaceId) {
+      queryClient.invalidateQueries({
+        queryKey: ["my-teams", activeWorkspaceId],
+        exact: false,
+      });
+    }
+  }, [activeWorkspaceId, queryClient]);
 
   return (
     <main className="workspace-layout">

@@ -15,7 +15,6 @@ import Conversation from "../../view/pages/conversation/Conversation";
 import CreateWorkspace from "../../view/pages/workspace/Create/CreateWorkspace";
 import CreateTeam from "../../view/pages/team/Create/CreateTeam";
 import WorkspaceAgentsList from "../../view/pages/workspace/AgentsList/WorkspaceAgentsList";
-import AssignWorkspaceAgent from "../../view/pages/workspace/AssignAgent/AssignWorkspaceAgent";
 import TeamAgentsList from "../../view/pages/team/AgentsList/TeamAgentsList";
 import AssignTeamAgent from "../../view/pages/team/AssignAgent/AssignTeamAgent";
 import NotFoundPage from "../../view/pages/404Page/NotFoundPage";
@@ -92,10 +91,6 @@ const MainRoutes = createBrowserRouter([
                   {
                     index: true,
                     element: <WorkspaceAgentsList />,
-                  },
-                  {
-                    path: "assign",
-                    element: <AssignWorkspaceAgent />,
                   },
                 ],
               },

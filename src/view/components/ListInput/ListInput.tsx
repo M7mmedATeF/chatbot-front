@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import styles from "./ListInput.module.css";
 import Button from "../Button/Button";
-import { PiPlusThin, PiX } from "react-icons/pi";
+import { PiX } from "react-icons/pi";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 
 type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   placeholder?: string;
@@ -28,6 +30,8 @@ const ListInput = ({
   const [text, setText] = useState<string>("");
 
   const addValue = () => {
+    if (text.trim() === "") return;
+
     onChange?.([
       ...(value ? value : []),
       (Uppercase ? text.toUpperCase() : text)
@@ -63,8 +67,8 @@ const ListInput = ({
               }
             }}
           />
-          <Button theme="primary" onClick={addValue}>
-            <PiPlusThin />
+          <Button theme="primary" onClick={addValue} tabIndex={-1}>
+            <FontAwesomeIcon icon={faPlus} />
           </Button>
         </div>
       </label>

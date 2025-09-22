@@ -11,10 +11,41 @@ mutation LoginUszer($email: String!, $password: String!) {
 }
 `;
 
+// Register user mutation
+export const UserRegisterMutation = `
+mutation RegisterUser($name: String!, $email: String!, $password: String!) {
+    registerUser(registerInput: { name: $name, email: $email, password: $password }) {
+        id
+        name
+        email
+        createdAt
+        updatedAt
+        token
+    }
+}
+`;
+
 // Types for the mutation
 export interface LoginVariables {
   email: string;
   password: string;
+}
+
+export interface RegisterVariables {
+  name: string;
+  email: string;
+  password: string;
+}
+
+export interface RegisterResponse {
+  registerUser: {
+    id: string;
+    name: string;
+    email: string;
+    createdAt: string;
+    updatedAt: string;
+    token: string;
+  };
 }
 
 export interface LoginResponse {
