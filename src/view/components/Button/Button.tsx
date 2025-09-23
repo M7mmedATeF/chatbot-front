@@ -4,7 +4,7 @@ import { NavLink, type NavLinkProps } from "react-router";
 
 type ButtonProps = {
   children?: React.ReactNode;
-  onClick?: () => void;
+  onClick?: (e?: any) => void;
   className?: string;
   disabled?: boolean;
   type?: "button" | "submit" | "reset";

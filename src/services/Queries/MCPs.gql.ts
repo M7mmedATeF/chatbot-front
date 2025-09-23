@@ -6,27 +6,39 @@ import type { ApiResponse } from "../AxiosFetch";
 export const ListMCPsQuery = `
 query Mcps {
     mcps {
-        createdAt
-        description
-        icon
         id
         name
-        path
-        updatedAt
-        version
-        type
-        command
         Tools {
-            createdAt
-            description
-            examples
             id
             name
+            description
+            createdAt
             updatedAt
         }
         Requirements {
             id
             key
+        }
+        icon
+        description
+        version
+        createdAt
+        updatedAt
+        type
+        command
+        Files {
+            id
+            file_name
+            file_path
+            is_main
+            fileContent
+        }
+        Env {
+            id
+            name
+            description
+            createdAt
+            updatedAt
         }
     }
 }
@@ -39,27 +51,43 @@ export interface MCPRequirement {
 }
 
 export interface MCPTool {
-  createdAt?: string;
-  description?: string;
-  examples?: string;
   id: number;
   name: string;
-  updatedAt?: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MCPFile {
+  id: number;
+  file_name: string;
+  file_path: string;
+  is_main: boolean;
+  fileContent: string;
+}
+
+export interface MCPEnv {
+  id: number;
+  name: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface MCPItem {
-  createdAt: string;
-  description: string;
-  icon: string;
   id: number;
   name: string;
-  path: string;
-  updatedAt: string;
-  version: string;
-  type: MCPType;
-  command: string;
   Tools: MCPTool[];
   Requirements: MCPRequirement[];
+  icon: string;
+  description: string;
+  version: string;
+  createdAt: string;
+  updatedAt: string;
+  type: MCPType;
+  command: string;
+  Files: MCPFile[];
+  Env: MCPEnv[];
 }
 
 export interface ListMCPsResponse {

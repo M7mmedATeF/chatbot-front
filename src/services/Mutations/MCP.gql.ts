@@ -2,14 +2,15 @@
 export const CreateMCPMutation = `
 mutation CreateMcp($createMcpInput: CreateMcpToolInput!) {
     createMcp(createMcpInput: $createMcpInput) {
-        createdAt
-        description
-        icon
         id
+        icon
         name
-        path
-        updatedAt
+        description
+        type
+        command
         version
+        createdAt
+        updatedAt
     }
 }
 `;
@@ -23,7 +24,6 @@ mutation UpdateMcp($id: Int!, $updateMcpInput: UpdateMcpToolInput!) {
         icon
         id
         name
-        path
         updatedAt
         version
     }
@@ -39,7 +39,6 @@ mutation RemoveMcp($id: Int!) {
         icon
         id
         name
-        path
         updatedAt
         version
         Requirements {
@@ -55,15 +54,23 @@ export type ToolsInput = {
   description: string;
 };
 
+export type FilesInput = {
+  name: string;
+  code: string;
+  is_main: boolean;
+};
+
 // Types for the mutation
 export interface CreateMCPInput {
-  description: string;
-  icon: string;
   name: string;
-  path: string;
-  requirements: string[];
-  tools: ToolsInput[];
+  icon: string;
+  description: string;
+  type: string;
+  command: string;
   version: string;
+  Requirements: string[];
+  tools: ToolsInput[];
+  files: FilesInput[];
 }
 
 export interface CreateMCPVariables {
@@ -72,21 +79,21 @@ export interface CreateMCPVariables {
 
 export interface CreateMCPResponse {
   createMcp: {
-    createdAt: string;
-    description: string;
-    icon: string;
     id: string;
+    icon: string;
     name: string;
-    path: string;
-    updatedAt: string;
+    description: string;
+    type: string;
+    command: string;
     version: string;
+    createdAt: string;
+    updatedAt: string;
   };
 }
 
 // Types for update mutation
 export interface UpdateMCPInput {
   name?: string;
-  path?: string;
   delete_requirements?: number[];
   new_requirements?: string[];
   version?: string | null;
@@ -145,7 +152,6 @@ mutation ListMcpsForWorkspace {
             id
             name
             description
-            examples
             createdAt
             updatedAt
         }
@@ -153,7 +159,6 @@ mutation ListMcpsForWorkspace {
             id
             key
         }
-        path
         icon
         description
         version
@@ -172,7 +177,6 @@ export interface ListMCPsForWorkspaceResponse {
       id: number;
       name: string;
       description: string;
-      examples: string;
       createdAt: string;
       updatedAt: string;
     }[];
@@ -180,7 +184,6 @@ export interface ListMCPsForWorkspaceResponse {
       id: number;
       key: string;
     }[];
-    path: string;
     icon: string;
     description: string;
     version: string;

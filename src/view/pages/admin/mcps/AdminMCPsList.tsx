@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import "./AdminMCPsList.css";
 import Input from "../../../components/Input/Input";
 import { faPlus, faTrash } from "@fortawesome/free-solid-svg-icons";
@@ -18,18 +18,16 @@ import type { MCPItem } from "../../../../services/Queries/MCPs.gql";
 import Dropdown from "../../../components/Dropdown/Dropdown";
 import CodeInput from "../../../components/CodeInput/CodeInput";
 
-export type MCPType =
-  | "NODE"
-  | "PYTHON"
-  | "GO"
-  | "KOTLIN"
-  | "SWIFT"
-  | "JAVA"
-  | "CS"
-  | "RUBY"
-  | "RUST"
-  | "PHP"
-  | "OTHERS";
+export type MCPType = "NODE" | "PYTHON";
+// | "GO"
+// | "KOTLIN"
+// | "SWIFT"
+// | "JAVA"
+// | "CS"
+// | "RUBY"
+// | "RUST"
+// | "PHP"
+// | "OTHERS";
 
 const createMCPSchema = z.object({
   icon: z.string().nonempty({
@@ -37,7 +35,6 @@ const createMCPSchema = z.object({
   }),
   name: z.string().min(1),
   description: z.string().min(3),
-  path: z.string().min(1),
   type: z.enum([
     "NODE",
     "PYTHON",
@@ -84,7 +81,8 @@ const createMCPSchema = z.object({
     .array(
       z.object({
         is_main: z.boolean(),
-        code: z.string().min(0),
+        code: z.string().min(10),
+        name: z.string().min(3),
       })
     )
     .min(1),
@@ -103,7 +101,7 @@ const Environments = [
   // "RUBY",
   // "RUST",
   // "PHP",
-  "OTHERS",
+  // "OTHERS",
 ];
 
 const AdminMCPsList = () => {
@@ -118,17 +116,18 @@ const AdminMCPsList = () => {
     reset,
     formState: { errors },
     watch,
+    setValue,
   } = useForm<CreateMCPFormData>({
     resolver: zodResolver(createMCPSchema),
     defaultValues: {
       tools: [{ name: "", description: "" }],
-      tabs: [{ code: "", is_main: true }],
+      tabs: [{ code: "", is_main: true, name: "index" }],
       requirements: [],
       type: "NODE" as const,
+      command: "node",
       icon: "",
       name: "",
       description: "",
-      path: "",
       version: "",
     },
   });
@@ -144,6 +143,46 @@ const AdminMCPsList = () => {
     deleteMCPAsync,
   } = useMCP();
 
+  const FileType = useMemo(() => {
+    switch (FormValues.type as string) {
+      case "NODE":
+        return ".js";
+      case "PYTHON":
+        return ".py";
+      case "GO":
+        return ".go";
+      case "KOTLIN":
+        return ".kt";
+      case "SWIFT":
+        return ".swift";
+      case "JAVA":
+        return ".java";
+      case "CS":
+        return ".cs";
+      case "RUBY":
+        return ".rb";
+      case "RUST":
+        return ".rs";
+      case "PHP":
+        return ".php";
+      default:
+        return ".txt";
+    }
+  }, [FormValues.type]);
+
+  useEffect(() => {
+    let command = "node";
+    switch (FormValues.type as string) {
+      case "NODE":
+        command = "node";
+        break;
+      case "PYTHON":
+        command = "python";
+        break;
+    }
+    setValue("command", command);
+  }, [FormValues.type, setValue]);
+
   // Debounce search input
   const debouncedSearch = useDebounce(search, 300);
 
@@ -156,7 +195,6 @@ const AdminMCPsList = () => {
       return (
         mcp.name.toLowerCase().includes(searchLower) ||
         mcp.description.toLowerCase().includes(searchLower) ||
-        mcp.path.toLowerCase().includes(searchLower) ||
         mcp.version.toLowerCase().includes(searchLower) ||
         mcp.Tools.some((tool) =>
           tool.name.toLowerCase().includes(searchLower)
@@ -247,7 +285,6 @@ const AdminMCPsList = () => {
             formdata.description !== originalMCP.description
               ? formdata.description
               : undefined,
-          path: formdata.path !== originalMCP.path ? formdata.path : undefined,
           version:
             formdata.version !== originalMCP.version
               ? formdata.version
@@ -272,16 +309,22 @@ const AdminMCPsList = () => {
       } else {
         // Create mode
         await createMCPAsync({
-          icon: formdata.icon,
           name: formdata.name,
+          icon: formdata.icon,
           description: formdata.description,
-          path: formdata.path,
-          requirements: formdata.requirements,
+          type: formdata.type,
+          command: formdata.command || "node",
+          version: formdata.version,
+          Requirements: formdata.requirements,
           tools: formdata.tools.map((t) => ({
             name: t.name.trim() || "",
             description: t.description.trim() || "",
           })),
-          version: formdata.version,
+          files: formdata.tabs.map((tab) => ({
+            name: tab.name,
+            code: tab.code,
+            is_main: tab.is_main,
+          })),
         });
       }
     } catch (error) {
@@ -292,18 +335,21 @@ const AdminMCPsList = () => {
   };
 
   const openForm = (mcp?: MCPItem) => {
-    console.log(mcp);
     reset({
       icon: mcp?.icon || "",
       name: mcp?.name || "",
       description: mcp?.description || "",
-      path: mcp?.path || "",
+      tabs: mcp?.Files.map((f) => ({
+        code: f.fileContent,
+        is_main: f.is_main,
+        name: f.file_name,
+      })) || [{ code: "", is_main: true, name: "index" }],
       requirements: mcp?.Requirements?.map((r) => r.key || "") || [],
       type: (mcp?.type as any) || "NODE",
-      command: mcp?.command || "",
+      command: mcp?.command || "node",
       tools: mcp?.Tools.map((t) => ({
-        name: t.name.split(": ")?.[0] || "",
-        description: t.name.split(": ")?.[1] || "",
+        name: t.name || "",
+        description: t.description || "",
       })) || [{ name: "", description: "" }],
       version: mcp?.version || "",
     });
@@ -381,7 +427,10 @@ const AdminMCPsList = () => {
               description: mcp.description,
               Tools: mcp.Tools.map((t) => ({
                 id: t.id,
-                name: `${t.name}: ${t.description}`,
+                name: t.name,
+                description: t.description,
+                createdAt: t.createdAt,
+                updatedAt: t.updatedAt,
               })),
               Requirements: mcp.Requirements.map((requirement) => ({
                 id: requirement.id,
@@ -441,7 +490,7 @@ const AdminMCPsList = () => {
               name="name"
               render={({ field, fieldState }) => (
                 <Input
-                  label="MCP Name"
+                  label="Name"
                   value={field.value}
                   onChange={field.onChange}
                   error={fieldState.error?.message}
@@ -470,7 +519,7 @@ const AdminMCPsList = () => {
                 name="type"
                 render={({ field, fieldState }) => (
                   <Dropdown
-                    label="Mcp Environment"
+                    label="Environment"
                     value={field.value}
                     onChange={field.onChange}
                     error={fieldState.error?.message}
@@ -480,22 +529,20 @@ const AdminMCPsList = () => {
                 )}
               />
 
-              {(FormValues.type as string) === "OTHERS" && (
-                <Controller
-                  control={control}
-                  name="command"
-                  shouldUnregister
-                  render={({ field, fieldState }) => (
-                    <Input
-                      label="Mcp Environment Code"
-                      value={field.value}
-                      onChange={field.onChange}
-                      placeholder="eg: uv.py, go.mod, etc."
-                      error={fieldState.error?.message}
-                    />
-                  )}
-                />
-              )}
+              <Controller
+                control={control}
+                name="command"
+                shouldUnregister
+                render={({ field, fieldState }) => (
+                  <Input
+                    label="Environment Command"
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="eg: uv.py, go.mod, etc."
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
             </div>
 
             <Controller
@@ -563,7 +610,7 @@ const AdminMCPsList = () => {
                       />
                     )}
                   />
-                  {index === tools.length - 1 ? (
+                  {index === 0 ? (
                     <Button
                       theme="primary"
                       onClick={() => addTool({ name: "", description: "" })}
@@ -585,7 +632,12 @@ const AdminMCPsList = () => {
             ))}
 
             <div className="full-w">
-              <CodeInput control={control} name="tabs" />
+              <CodeInput
+                control={control}
+                name="tabs"
+                FileType={FileType}
+                isEditMode={editMode}
+              />
             </div>
           </div>
 

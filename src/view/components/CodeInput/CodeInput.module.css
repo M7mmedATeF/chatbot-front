@@ -9,7 +9,7 @@
   display: flex;
   align-items: stretch;
   justify-content: flex-start;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   overflow-x: auto;
 }
 
@@ -21,6 +21,7 @@
   padding: 0.2rem 0.5rem;
   border-radius: 0.2rem 0.2rem 0 0;
   cursor: pointer;
+  white-space: nowrap;
 
   &:not(button) {
     border: 1px solid #f0f0f0;
@@ -83,5 +84,21 @@ button.tab {
     line-height: 1.5;
     font-family: inherit;
     resize: vertical;
+  }
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 2rem;
+  font-size: 4rem;
+  color: #aaa;
+
+  p {
+    font-size: 2rem;
+    font-weight: 100;
   }
 }

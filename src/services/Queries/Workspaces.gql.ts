@@ -77,7 +77,6 @@ query ListAvailableWsMcps {
     listAvailableWsMcps {
         id
         name
-        path
         icon
         description
         version
@@ -87,7 +86,6 @@ query ListAvailableWsMcps {
             id
             name
             description
-            examples
             createdAt
             updatedAt
             isSelected
@@ -111,7 +109,6 @@ query ListAvailableWsMcps {
 export interface AvailableWsMcpItem {
   id: string;
   name: string;
-  path: string;
   icon: string;
   description: string;
   version: string;
@@ -121,7 +118,6 @@ export interface AvailableWsMcpItem {
     id: string;
     name: string;
     description: string;
-    examples: string;
     createdAt: Date;
     updatedAt: Date;
     isSelected: boolean;
@@ -163,7 +159,6 @@ query WorkspaceMcp {
         Mcp {
             id
             name
-            path
             icon
             description
             version
@@ -173,7 +168,6 @@ query WorkspaceMcp {
                 id
                 name
                 description
-                examples
                 createdAt
                 updatedAt
             }
@@ -182,7 +176,6 @@ query WorkspaceMcp {
             id
             name
             description
-            examples
             createdAt
             updatedAt
         }
@@ -208,7 +201,6 @@ export interface WorkspaceMcpItem {
   Mcp: {
     id: number;
     name: string;
-    path: string;
     icon: string;
     description: string;
     version: string;
@@ -218,7 +210,6 @@ export interface WorkspaceMcpItem {
       id: number;
       name: string;
       description: string;
-      examples: string;
       createdAt: string;
       updatedAt: string;
     }[];
@@ -227,7 +218,6 @@ export interface WorkspaceMcpItem {
     id: number;
     name: string;
     description: string;
-    examples: string;
     createdAt: string;
     updatedAt: string;
   }[];

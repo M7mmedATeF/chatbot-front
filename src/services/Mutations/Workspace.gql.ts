@@ -133,7 +133,6 @@ mutation CreateWorkspaceMcp($createWorkspaceMcpInput: CreateWorkspaceMcpInput!) 
         Mcp {
             id
             name
-            path
             icon
             description
             version
@@ -151,7 +150,6 @@ mutation CreateWorkspaceMcp($createWorkspaceMcpInput: CreateWorkspaceMcpInput!) 
             id
             name
             description
-            examples
             createdAt
             updatedAt
         }
@@ -179,7 +177,6 @@ export interface CreateWorkspaceMcpResponse {
     Mcp: {
       id: number;
       name: string;
-      path: string;
       icon: string;
       description: string;
       version: string;
@@ -197,7 +194,6 @@ export interface CreateWorkspaceMcpResponse {
       id: number;
       name: string;
       description: string;
-      examples: string;
       createdAt: string;
       updatedAt: string;
     }[];
@@ -293,7 +289,6 @@ mutation UpdateWorkspaceMcp($updateWorkspaceMcpInput: UpdateWorkspaceMcpInput!) 
         Mcp {
             id
             name
-            path
             icon
             description
             version
@@ -304,7 +299,6 @@ mutation UpdateWorkspaceMcp($updateWorkspaceMcpInput: UpdateWorkspaceMcpInput!) 
             id
             name
             description
-            examples
             createdAt
             updatedAt
         }
@@ -342,7 +336,6 @@ export interface UpdateWorkspaceMcpResponse {
     Mcp: {
       id: number;
       name: string;
-      path: string;
       icon: string;
       description: string;
       version: string;
@@ -353,7 +346,6 @@ export interface UpdateWorkspaceMcpResponse {
       id: number;
       name: string;
       description: string;
-      examples: string;
       createdAt: string;
       updatedAt: string;
     }[];
