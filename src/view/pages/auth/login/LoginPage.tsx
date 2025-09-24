@@ -4,7 +4,7 @@ import Button from "../../../components/Button/Button";
 import "./LoginPage.css";
 import { RouteParser as RouterParser } from "../../../../router/RouteParser";
 import { activeRoutes } from "../../../../router/ActiveRoutes";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useFetch from "../../../../hooks/useFetch";
 import {
   UserLogin,
@@ -34,6 +34,7 @@ const validation = z.object({
 const LoginPage = ({ isAdmin = false }) => {
   const nav = useNavigate();
   const fetch = useFetch();
+  const queryClient = useQueryClient();
   const { control, handleSubmit } = useForm({
     resolver: zodResolver(validation),
   });
@@ -62,6 +63,9 @@ const LoginPage = ({ isAdmin = false }) => {
       Cookies.set("TOKEN", token);
 
       setUser(userData);
+
+      // Invalidate workspaces to refetch fresh data post-login
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
 
       // Navigate to admin dashboard if admin, otherwise to regular dashboard
       nav(isAdmin ? "/admin" : "/");
