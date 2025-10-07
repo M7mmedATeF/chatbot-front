@@ -14,6 +14,7 @@ type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   error?: string;
   NoSpaces?: boolean;
   Uppercase?: boolean;
+  readOnly?: boolean;
 };
 
 const ListInput = ({
@@ -24,6 +25,7 @@ const ListInput = ({
   error,
   NoSpaces = false,
   Uppercase = false,
+  readOnly = false,
   onRemove = () => {},
   ...props
 }: InputProps) => {
@@ -51,35 +53,65 @@ const ListInput = ({
     <div className={styles.inputWrapper}>
       <label className={styles.input}>
         {label && <span className={styles.label}>{label}</span>}
-        <div className={styles.controls}>
-          <input
-            type="text"
-            placeholder={placeholder}
-            value={text}
-            {...props}
-            onChange={(e) => {
-              setText(e.target.value);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                addValue();
-              }
-            }}
-          />
-          <Button theme="primary" onClick={addValue} tabIndex={-1}>
-            <FontAwesomeIcon icon={faPlus} />
-          </Button>
-        </div>
+        {!readOnly ? (
+          <div className={styles.controls}>
+            <input
+              type="text"
+              placeholder={placeholder}
+              value={text}
+              {...props}
+              readOnly={readOnly}
+              onChange={(e) => {
+                setText(e.target.value);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addValue();
+                }
+              }}
+            />
+            <Button
+              theme="primary"
+              onClick={addValue}
+              tabIndex={-1}
+              disabled={readOnly}
+            >
+              <FontAwesomeIcon icon={faPlus} />
+            </Button>
+          </div>
+        ) : (
+          <div className={styles.itemsList}>
+            {value.length > 0 ? (
+              value.map((v, idx) => (
+                <div className="glass-bg" key={idx}>
+                  {v}
+                </div>
+              ))
+            ) : (
+              <p
+                className="text-sm text-gray-500"
+                style={{ marginBottom: "5px" }}
+              >
+                Add your code to show values
+              </p>
+            )}
+          </div>
+        )}
       </label>
       {error && <small className={styles.error}>{error}</small>}
-      {value && value.length > 0 && (
+      {!readOnly && value && value.length > 0 && (
         <div className={styles.itemsList}>
           {value.map((v, idx) => (
             <div className="glass-bg" key={idx}>
-              <Button theme="danger" onClick={() => removeValue(idx)}>
+              <Button
+                theme="danger"
+                onClick={() => removeValue(idx)}
+                disabled={readOnly}
+              >
                 <PiX />
               </Button>
+
               {v}
             </div>
           ))}

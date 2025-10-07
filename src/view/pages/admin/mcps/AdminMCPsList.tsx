@@ -17,6 +17,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { MCPItem } from "../../../../services/Queries/MCPs.gql";
 import Dropdown from "../../../components/Dropdown/Dropdown";
 import CodeInput from "../../../components/CodeInput/CodeInput";
+import Toggle from "../../../components/Toggle/Toggle";
 
 export type MCPType = "NODE" | "PYTHON";
 // | "GO"
@@ -110,6 +111,9 @@ const AdminMCPsList = () => {
   const [showDelete, setShowDelete] = useState<MCPItem | boolean>(false);
   const [editMode, setEditMode] = useState<boolean>(false);
   const [originalMCP, setOriginalMCP] = useState<MCPItem | null>(null);
+  const [autoReadTools, setAutoReadTools] = useState<boolean>(true);
+  const [autoReadRequirements, setAutoReadRequirements] =
+    useState<boolean>(true);
   const {
     control,
     handleSubmit,
@@ -182,6 +186,103 @@ const AdminMCPsList = () => {
     }
     setValue("command", command);
   }, [FormValues.type, setValue]);
+
+  // Memoize the main file to detect changes in is_main
+  const mainFile = useMemo(() => {
+    return FormValues.tabs?.find((tab) => tab.is_main);
+  }, [FormValues.tabs]);
+
+  // Auto extract tools from main file
+  useEffect(() => {
+    console.log(mainFile);
+    if (!autoReadTools) return;
+
+    if (!mainFile || !mainFile.code) return;
+
+    const extractedTools: { name: string; description: string }[] = [];
+
+    if (FormValues.type === "PYTHON") {
+      // Python regex: name\s*=\s*"([^"]+)"[\s\S]*?description\s*=\s*"([^"]+)"
+      const pythonRegex =
+        /name\s*=\s*"([^"]+)"[\s\S]*?description\s*=\s*"([^"]+)"/g;
+      let match;
+      while ((match = pythonRegex.exec(mainFile.code)) !== null) {
+        extractedTools.push({
+          name: match[1],
+          description: match[2],
+        });
+      }
+    } else if (FormValues.type === "NODE") {
+      // Node regex: server\.tool\(\s*"([^"]+)"\s*,\s*"([^"]+)"
+      const nodeRegex = /server\.tool\(\s*"([^"]+)"\s*,\s*"([^"]+)"/g;
+      let match;
+      while ((match = nodeRegex.exec(mainFile.code)) !== null) {
+        extractedTools.push({
+          name: match[1],
+          description: match[2],
+        });
+      }
+    }
+
+    const currentTools = FormValues.tools || [];
+    const toolsToSet =
+      extractedTools.length > 0
+        ? extractedTools
+        : [{ name: "", description: "" }];
+    console.log("toolsToSet", toolsToSet);
+    const isDifferent =
+      JSON.stringify(currentTools) !== JSON.stringify(toolsToSet);
+
+    // Update tools if different (including resetting to empty when no tools found)
+    if (isDifferent) {
+      setValue("tools", toolsToSet);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoReadTools, mainFile, FormValues.type, setValue]);
+
+  // Auto extract requirements from all files
+  useEffect(() => {
+    if (!autoReadRequirements) return;
+
+    const allFiles = FormValues.tabs || [];
+    if (allFiles.length === 0) return;
+
+    const extractedRequirements = new Set<string>();
+
+    if (FormValues.type === "PYTHON") {
+      // Python regex: os\.getenv\(\s*"([^"]+)"
+      const pythonRegex = /os\.getenv\(\s*"([^"]+)"/g;
+      allFiles.forEach((file) => {
+        if (!file.code) return;
+        let match;
+        while ((match = pythonRegex.exec(file.code)) !== null) {
+          extractedRequirements.add(match[1]);
+        }
+      });
+    } else if (FormValues.type === "NODE") {
+      // Node regex: process\.env\.([A-Z0-9_]+)
+      const nodeRegex = /process\.env\.([A-Z0-9_]+)/g;
+      allFiles.forEach((file) => {
+        if (!file.code) return;
+        let match;
+        while ((match = nodeRegex.exec(file.code)) !== null) {
+          extractedRequirements.add(match[1]);
+        }
+      });
+    }
+
+    // Update requirements (including resetting to empty when none found)
+    const extractedArray = Array.from(extractedRequirements);
+    const currentRequirements = FormValues.requirements || [];
+    const isDifferent =
+      JSON.stringify(currentRequirements.sort()) !==
+      JSON.stringify(extractedArray.sort());
+
+    if (isDifferent) {
+      setValue("requirements", extractedArray);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoReadRequirements, FormValues.tabs, FormValues.type, setValue]);
 
   // Debounce search input
   const debouncedSearch = useDebounce(search, 300);
@@ -383,6 +484,14 @@ const AdminMCPsList = () => {
     shouldUnregister: true,
   });
 
+  const handleAutoReadToolsChange = (checked: boolean) => {
+    setAutoReadTools(checked);
+  };
+
+  const handleAutoReadRequirementsChange = (checked: boolean) => {
+    setAutoReadRequirements(checked);
+  };
+
   return (
     <section className="admin-agents section-page sys_container">
       <div className="headline">
@@ -559,6 +668,48 @@ const AdminMCPsList = () => {
               )}
             />
 
+            <div className="full-w flex items-center gap-4">
+              <div className="flex items-center gap-3 flex-1">
+                <Toggle
+                  id="auto-read-requirements"
+                  checked={autoReadRequirements}
+                  onChange={handleAutoReadRequirementsChange as any}
+                  theme="primary"
+                />
+                <div>
+                  <label
+                    htmlFor="auto-read-requirements"
+                    className="font-medium cursor-pointer"
+                  >
+                    Auto read requirements
+                  </label>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Automatically extract requirements from all files
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 flex-1">
+                <Toggle
+                  id="auto-read-tools"
+                  checked={autoReadTools}
+                  onChange={handleAutoReadToolsChange as any}
+                  theme="primary"
+                />
+                <div>
+                  <label
+                    htmlFor="auto-read-tools"
+                    className="font-medium cursor-pointer"
+                  >
+                    Auto read tools
+                  </label>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Automatically extract tools from the main file
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <div className="full-w">
               <Controller
                 control={control}
@@ -572,6 +723,7 @@ const AdminMCPsList = () => {
                     onChange={field.onChange}
                     Uppercase
                     NoSpaces
+                    readOnly={autoReadRequirements}
                     error={
                       fieldState.error?.message ||
                       errors.requirements?.[0]?.message
@@ -593,6 +745,7 @@ const AdminMCPsList = () => {
                       onChange={field.onChange}
                       error={fieldState.error?.message}
                       placeholder="eg: Tool Name"
+                      readOnly={autoReadTools}
                     />
                   )}
                 />
@@ -607,25 +760,32 @@ const AdminMCPsList = () => {
                         onChange={field.onChange}
                         placeholder="eg: Tool Description"
                         error={fieldState.error?.message}
+                        readOnly={autoReadTools}
                       />
                     )}
                   />
-                  {index === 0 ? (
-                    <Button
-                      theme="primary"
-                      onClick={() => addTool({ name: "", description: "" })}
-                      tabIndex={-1}
-                    >
-                      <FontAwesomeIcon icon={faPlus} />
-                    </Button>
+                  {!autoReadTools ? (
+                    index === 0 ? (
+                      <Button
+                        theme="primary"
+                        onClick={() => addTool({ name: "", description: "" })}
+                        tabIndex={-1}
+                        disabled={autoReadTools}
+                      >
+                        <FontAwesomeIcon icon={faPlus} />
+                      </Button>
+                    ) : (
+                      <Button
+                        theme="danger"
+                        onClick={() => removeTool(index)}
+                        tabIndex={-1}
+                        disabled={autoReadTools}
+                      >
+                        <FontAwesomeIcon icon={faTrash} />
+                      </Button>
+                    )
                   ) : (
-                    <Button
-                      theme="danger"
-                      onClick={() => removeTool(index)}
-                      tabIndex={-1}
-                    >
-                      <FontAwesomeIcon icon={faTrash} />
-                    </Button>
+                    ""
                   )}
                 </div>
               </Fragment>

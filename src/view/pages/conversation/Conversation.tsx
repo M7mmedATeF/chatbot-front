@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
 import { AiOutlineArrowLeft } from "react-icons/ai";
 import dayjs from "dayjs";
+import { Virtuoso } from "react-virtuoso";
 
 const Conversation = () => {
   const [showLiveCalls, setShowLiveCalls] = useState(false);
@@ -23,8 +24,10 @@ const Conversation = () => {
   const { roomId } = useParams();
   const numericRoomId = roomId ? parseInt(roomId, 10) : undefined;
   const [message, setMessage] = useState("");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const virtuosoRef = useRef<any>(null);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
+  const [displayedMessagesCount, setDisplayedMessagesCount] = useState(5);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   // Fetch room data with messages
   const {
@@ -91,6 +94,18 @@ const Conversation = () => {
     }));
   }, [chatMessages]);
 
+  // All combined messages (full list)
+  const fullMessagesList = useMemo(() => {
+    return [...graphQLMessages, ...chatMessagesFormatted];
+  }, [graphQLMessages, chatMessagesFormatted]);
+
+  // Messages to display (limited by displayedMessagesCount)
+  const allMessages = useMemo(() => {
+    const totalMessages = fullMessagesList.length;
+    const startIndex = Math.max(0, totalMessages - displayedMessagesCount);
+    return fullMessagesList.slice(startIndex);
+  }, [fullMessagesList, displayedMessagesCount]);
+
   // Combine tool data sources: use streaming toolData if available, otherwise use fetched data
   const displayToolData = useMemo(() => {
     if (showLiveCalls && toolData.length > 0) {
@@ -110,33 +125,39 @@ const Conversation = () => {
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
-    const scrollToBottom = () => {
-      if (messagesEndRef.current) {
-        messagesEndRef.current.scrollIntoView({
+    if (shouldAutoScroll && virtuosoRef.current) {
+      // Small delay to ensure DOM updates
+      setTimeout(() => {
+        virtuosoRef.current?.scrollToIndex({
+          index: allMessages.length - 1,
           behavior: "smooth",
-          block: "end",
+          align: "end",
         });
-      }
-    };
-
-    // If streaming, only scroll if user is already near bottom (within 100px)
-    if (isStreaming && messagesContainerRef.current) {
-      const sys_container = messagesContainerRef.current;
-      const isNearBottom =
-        sys_container.scrollHeight -
-          sys_container.scrollTop -
-          sys_container.clientHeight <
-        100;
-
-      if (isNearBottom) {
-        // Small delay to ensure DOM updates
-        setTimeout(scrollToBottom, 50);
-      }
-    } else {
-      // For new messages (not streaming), always scroll to bottom
-      setTimeout(scrollToBottom, 50);
+      }, 50);
     }
-  }, [graphQLMessages.length, chatMessagesFormatted.length, isStreaming]);
+  }, [allMessages.length, shouldAutoScroll, isStreaming]);
+
+  // Reset displayed count when switching rooms
+  useEffect(() => {
+    setDisplayedMessagesCount(5);
+  }, [roomId]);
+
+  // Load more messages when scrolling to top
+  const loadMoreMessages = useCallback(() => {
+    if (isLoadingMore || displayedMessagesCount >= fullMessagesList.length) {
+      return;
+    }
+
+    setIsLoadingMore(true);
+
+    // Simulate loading delay (you can remove this if you want instant loading)
+    setTimeout(() => {
+      setDisplayedMessagesCount((prev) =>
+        Math.min(prev + 5, fullMessagesList.length)
+      );
+      setIsLoadingMore(false);
+    }, 300);
+  }, [isLoadingMore, displayedMessagesCount, fullMessagesList.length]);
 
   const sendMessage = useCallback(() => {
     if (message.trim() && !isStreaming) {
@@ -236,7 +257,10 @@ const Conversation = () => {
                 : roomData?.room?.name || "Conversation"}
             </p>
             <p className="token-usage">
-              {graphQLMessages.length + chatMessagesFormatted.length} messages
+              {fullMessagesList.length} messages
+              {allMessages.length < fullMessagesList.length && (
+                <span> (showing last {allMessages.length})</span>
+              )}
               {isStreaming && (
                 <span className="streaming-indicator"> • Streaming</span>
               )}
@@ -324,56 +348,107 @@ const Conversation = () => {
         </div>
 
         <div className="conversation-body">
-          <div className="messages-list" ref={messagesContainerRef}>
-            {loadingRoom ? (
+          {loadingRoom ? (
+            <div className="messages-list">
               <div className="loading-container">
                 <Loader />
                 <p>Loading conversation...</p>
               </div>
-            ) : roomError ? (
+            </div>
+          ) : roomError ? (
+            <div className="messages-list">
               <div className="error-container">
                 <p>Error loading conversation</p>
                 <Button onClick={() => window.location.reload()}>Retry</Button>
               </div>
-            ) : graphQLMessages.length > 0 ||
-              chatMessagesFormatted.length > 0 ? (
-              <>
-                {/* Render useChat Messages */}
-                {[...graphQLMessages, ...chatMessagesFormatted].map(
-                  (msg, idx) => {
-                    if (msg.role === "USER") {
-                      return (
-                        <UserMessage
-                          key={`chat_${idx}_${msg.id}_${uuidv4()}`}
-                          message={msg}
-                        />
-                      );
-                    }
+            </div>
+          ) : allMessages.length > 0 ? (
+            <Virtuoso
+              className="messages-list"
+              ref={virtuosoRef}
+              style={{ height: "100%" }}
+              data={allMessages}
+              initialTopMostItemIndex={allMessages.length - 1}
+              followOutput="smooth"
+              atBottomStateChange={(atBottom) => {
+                setShouldAutoScroll(atBottom);
+              }}
+              startReached={loadMoreMessages}
+              components={{
+                Header: () =>
+                  displayedMessagesCount < fullMessagesList.length ? (
+                    <div
+                      style={{
+                        padding: "20px",
+                        textAlign: "center",
+                      }}
+                    >
+                      {isLoadingMore ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <Loader />
+                          <span>Loading more messages...</span>
+                        </div>
+                      ) : (
+                        <Button onClick={loadMoreMessages} theme="secondary">
+                          Load{" "}
+                          {Math.min(
+                            5,
+                            fullMessagesList.length - displayedMessagesCount
+                          )}{" "}
+                          more messages
+                        </Button>
+                      )}
+                    </div>
+                  ) : displayedMessagesCount >= fullMessagesList.length &&
+                    fullMessagesList.length > 5 ? (
+                    <div
+                      style={{
+                        padding: "20px",
+                        textAlign: "center",
+                        color: "#666",
+                      }}
+                    >
+                      <p>All messages loaded</p>
+                    </div>
+                  ) : null,
+                EmptyPlaceholder: () => (
+                  <div className="empty-container">
+                    <p>No messages yet. Start the conversation!</p>
+                  </div>
+                ),
+              }}
+              itemContent={(index, msg) => {
+                if (msg.role === "USER") {
+                  return (
+                    <UserMessage
+                      key={`chat_${index}_${msg.id}_${uuidv4()}`}
+                      message={msg}
+                    />
+                  );
+                }
 
-                    if (msg.role === "MODEL" || msg.role === "SYSTEM") {
-                      return (
-                        <AgentMessage
-                          key={msg.id}
-                          message={msg}
-                          OnOpenMessages={() => {
-                            showMessageProcessingCalls(msg.id);
-                          }}
-                        />
-                      );
-                    }
+                if (msg.role === "MODEL" || msg.role === "SYSTEM") {
+                  return (
+                    <AgentMessage
+                      key={msg.id}
+                      message={msg}
+                      OnOpenMessages={() => {
+                        showMessageProcessingCalls(msg.id);
+                      }}
+                    />
+                  );
+                }
 
-                    return null;
-                  }
-                )}
-              </>
-            ) : (
+                return null;
+              }}
+            />
+          ) : (
+            <div className="messages-list">
               <div className="empty-container">
                 <p>No messages yet. Start the conversation!</p>
               </div>
-            )}
-            {/* Invisible element to scroll to */}
-            <div ref={messagesEndRef} />
-          </div>
+            </div>
+          )}
         </div>
       </div>
       <div className="conversation-footer glass-bg">

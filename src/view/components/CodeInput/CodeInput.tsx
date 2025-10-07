@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import styles from "./CodeInput.module.css";
 import Button from "../Button/Button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlus, faXmark } from "@fortawesome/free-solid-svg-icons";
+import {
+  faPlus,
+  faXmark,
+  faFileImport,
+} from "@fortawesome/free-solid-svg-icons";
 import Textarea from "../Textarea/Textarea";
 import { useContextMenuHandler } from "../../../hooks/useContextMenuHandler";
 import { useFieldArray, type Control } from "react-hook-form";
@@ -30,6 +34,7 @@ const CodeInput: React.FC<{
   const handleContextMenu = useContextMenuHandler();
   const [active, setActive] = useState<number>(0);
   const [showModal, setShowModal] = useState<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { fields, append, remove, update } = useFieldArray<any, any, any, any>({
     control,
@@ -60,9 +65,18 @@ const CodeInput: React.FC<{
   };
 
   const removeTab = (index: number) => {
+    const isRemovingMain = fields[index]?.is_main;
+
+    // If removing the main tab, transfer is_main to the previous tab (or next if no previous)
+    if (isRemovingMain && fields.length > 1) {
+      const newMainIndex = index > 0 ? index - 1 : 1; // If removing index 0, set index 1 as main
+      update(newMainIndex, { ...fields[newMainIndex], is_main: true });
+    }
+
     remove(index);
+
     if (active >= index) {
-      setActive(active - 1);
+      setActive(Math.max(0, active - 1));
     }
   };
 
@@ -82,6 +96,49 @@ const CodeInput: React.FC<{
     setShowModal(null);
   };
 
+  const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+
+      // Get file name without extension
+      const fileName = file.name.replace(/\.[^/.]+$/, "");
+
+      // Ensure the name is unique
+      const existingNames = new Set(fields.map((f) => f.name));
+      let uniqueName = fileName;
+      let counter = 1;
+      while (existingNames.has(uniqueName)) {
+        uniqueName = `${fileName} (${counter})`;
+        counter++;
+      }
+
+      // Add new tab with file content
+      append({
+        code: content,
+        is_main: false,
+        name: uniqueName,
+      });
+
+      // Set the newly added tab as active
+      setActive(fields.length);
+    };
+
+    reader.readAsText(file);
+
+    // Reset input value to allow importing the same file again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const triggerFileImport = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
     <div>
       <div className={styles.header}>
@@ -93,6 +150,11 @@ const CodeInput: React.FC<{
                 active === index ? styles.active : ""
               }`}
               onClick={() => setActive(index)}
+              onDoubleClick={(e) => {
+                e.stopPropagation();
+                setFileName(field.name);
+                setShowModal(index);
+              }}
               onContextMenu={handleContextMenu([
                 {
                   name: "Rename",
@@ -137,14 +199,34 @@ const CodeInput: React.FC<{
           ))}
         </div>
 
-        <Button
-          className={`${styles.tab}`}
-          theme="primary"
-          onClick={() => addTab(false)}
-        >
-          <FontAwesomeIcon icon={faPlus} />
-          Add File
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            className={`${styles.tab}`}
+            theme="primary"
+            onClick={() => addTab(false)}
+          >
+            <FontAwesomeIcon icon={faPlus} />
+            Add File
+          </Button>
+
+          <Button
+            className={`${styles.tab}`}
+            theme="secondary"
+            onClick={triggerFileImport}
+            title="Import file from system"
+          >
+            <FontAwesomeIcon icon={faFileImport} />
+            Import
+          </Button>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".js,.py,.txt"
+            style={{ display: "none" }}
+            onChange={handleFileImport}
+          />
+        </div>
       </div>
       <div className={styles.code}>
         {fields[active] ? (
@@ -166,7 +248,10 @@ const CodeInput: React.FC<{
       <Modal
         open={showModal != null}
         title="Rename File"
-        onClose={() => setShowModal(null)}
+        onClose={() => {
+          setShowModal(null);
+          setFileName("");
+        }}
         onSave={() => renameTab()}
         cancellable
       >
@@ -174,6 +259,7 @@ const CodeInput: React.FC<{
           placeholder="Enter New File Name"
           value={filename}
           onChange={(e: any) => setFileName(e)}
+          autoFocus
           onKeyDown={(e) => {
             e.stopPropagation();
             if (e.key === "Enter") {
