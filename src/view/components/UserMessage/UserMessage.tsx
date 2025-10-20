@@ -15,7 +15,7 @@ const UserMessage = ({ message }: UserMessageProps) => {
           source={message.Content.map((content) => content.text).join("")}
         />
         <p className="datetime">
-          <span>{dayjs(message.createdAt).format("hh:mm A")}</span>
+          <span>{dayjs(message.createdAt).format("hh:mm:ss A")}</span>
         </p>
       </div>
     </div>

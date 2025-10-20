@@ -1,7 +1,6 @@
 import "./WorkspaceAgentsList.css";
-import { useAvailableWsMcps } from "../../../../hooks/useWorkspaces";
-import type { AvailableWsMcpItem } from "../../../../services/Queries/Workspaces.gql";
-import McpAssignCard from "../../../components/McpAssignCard/McpAssignCard";
+import { useListAssignAgents } from "../../../../hooks/useListAssignAgents";
+import AgentAssignCard from "../../../components/AgentAssignCard/AgentAssignCard";
 import Loader from "../../../components/Loader/Loader";
 import Input from "../../../components/Input/Input";
 import { useMemo, useState } from "react";
@@ -12,16 +11,18 @@ const WorkspaceAgentsList = () => {
   const debouncedSearch = useDebounce(search, 300);
 
   const {
-    data: mcpsData,
+    data: agentsData,
     isLoading: isLoadingList,
     refetch,
-  } = useAvailableWsMcps();
+  } = useListAssignAgents();
 
   const viewAgents = useMemo(() => {
-    return mcpsData?.listAvailableWsMcps?.filter((mcp) => {
-      return mcp.name.toLowerCase().includes(debouncedSearch.toLowerCase());
+    return agentsData?.listAssignAgents?.filter((agentItem) => {
+      return agentItem.agent.name
+        .toLowerCase()
+        .includes(debouncedSearch.toLowerCase());
     });
-  }, [mcpsData, debouncedSearch]);
+  }, [agentsData, debouncedSearch]);
 
   return (
     <section className="workspace-agents section-page sys_container">
@@ -48,17 +49,21 @@ const WorkspaceAgentsList = () => {
             <div className="agents-list-column">
               {viewAgents
                 ?.filter((_, idx: number) => idx % 2 === 0)
-                .map((workspaceMcp: AvailableWsMcpItem) => (
-                  <McpAssignCard key={workspaceMcp.id} mcp={workspaceMcp} />
+                .map((agentItem) => (
+                  <AgentAssignCard
+                    key={agentItem.agent.id}
+                    agentData={agentItem}
+                    onUpdate={refetch}
+                  />
                 ))}
             </div>
             <div className="agents-list-column">
               {viewAgents
                 ?.filter((_, idx: number) => idx % 2 === 1)
-                .map((workspaceMcp: AvailableWsMcpItem) => (
-                  <McpAssignCard
-                    key={workspaceMcp.id}
-                    mcp={workspaceMcp}
+                .map((agentItem) => (
+                  <AgentAssignCard
+                    key={agentItem.agent.id}
+                    agentData={agentItem}
                     onUpdate={refetch}
                   />
                 ))}

@@ -1,4 +1,7 @@
 export const activeRoutes = {
+  admin: {
+    dashboard: "/admin",
+  },
   auth: {
     admin: "/auth/login/admin",
     login: "/auth/login",

@@ -33,13 +33,6 @@ query Mcps {
             is_main
             fileContent
         }
-        Env {
-            id
-            name
-            description
-            createdAt
-            updatedAt
-        }
     }
 }
 `;
@@ -66,14 +59,6 @@ export interface MCPFile {
   fileContent: string;
 }
 
-export interface MCPEnv {
-  id: number;
-  name: string;
-  description: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface MCPItem {
   id: number;
   name: string;
@@ -87,7 +72,6 @@ export interface MCPItem {
   type: MCPType;
   command: string;
   Files: MCPFile[];
-  Env: MCPEnv[];
 }
 
 export interface ListMCPsResponse {

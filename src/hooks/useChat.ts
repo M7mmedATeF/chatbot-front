@@ -39,7 +39,7 @@ export const useChat = ({
 
   const eventSourceRef = useRef<{ close: () => void } | null>(null);
   const newMessageRef = useRef<ChatMessage | null>(null);
-  const toolCallsRef = useRef<ChatMessage[]>(null);
+  const toolCallsRef = useRef<ChatMessage[] | null>(null);
 
   // keep ref synced with state
   useEffect(() => {
@@ -73,7 +73,13 @@ export const useChat = ({
     setIsStreaming(false);
     if (latest) {
       setNewMessage(null);
-      setMessages((prev) => [...prev, latest]);
+      setMessages((prev) => [
+        ...prev,
+        { ...latest, isStreaming: false, timestamp: new Date() },
+      ]);
+
+      eventSourceRef.current = null;
+      newMessageRef.current = null;
     }
   }, []);
 
@@ -102,19 +108,20 @@ export const useChat = ({
       setMessages((prev) => [...prev, userMsg]);
 
       // assistant streaming message
+      const CurrentDate = new Date();
       const assistantMsg: ChatMessage = {
-        id: `assistant-${Date.now()}`,
+        id: `assistant-${CurrentDate.getDate()}`,
         role: "ASSISTANT",
         Content: [
           {
-            id: Date.now(),
+            id: CurrentDate.getDate(),
             text: "",
-            createdAt: new Date(),
+            createdAt: CurrentDate,
             toolRequest: null,
             toolResponse: null,
           },
         ],
-        timestamp: new Date(),
+        timestamp: CurrentDate,
         isStreaming: true,
       };
       setNewMessage(assistantMsg);
@@ -148,8 +155,6 @@ export const useChat = ({
             try {
               const data = event.data;
 
-              console.log("Event: ", data);
-
               if (!data) return;
 
               if (data?.content?.length) {
@@ -162,7 +167,7 @@ export const useChat = ({
                   }
                   setToolData((prev) => [
                     ...prev,
-                    { ...data, timestamp: new Date().toString() },
+                    { ...data, timestamp: new Date() },
                   ]);
                 } else {
                   setNewMessage((prev) => {
@@ -220,21 +225,17 @@ export const useChat = ({
             }
           },
           done: () => {
-            console.log("Done");
-
-            finishStreaming();
             setCachedMessagesToolCalls((prev) => {
               const newCachedMessagesToolCalls = { ...prev };
               newCachedMessagesToolCalls[assistantMsg.id] =
                 toolCallsRef.current as any;
               return newCachedMessagesToolCalls;
             });
+            finishStreaming();
           },
           onerror: (err: any) => {
-            console.error("fetchEventSource error:", err);
-            setIsConnected(false);
             finishStreaming();
-            onError?.(new Error("Connection failed"));
+            onError?.(new Error(err.message || "Connection failed"));
           },
         });
 

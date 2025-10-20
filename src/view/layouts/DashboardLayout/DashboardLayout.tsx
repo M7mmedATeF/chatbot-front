@@ -5,6 +5,7 @@ import {
   AiOutlineDashboard,
   AiOutlineDoubleLeft,
   AiOutlineLogout,
+  AiOutlineRobot,
   AiOutlineSetting,
 } from "react-icons/ai";
 import { useState } from "react";
@@ -12,16 +13,8 @@ import { PiToolboxLight } from "react-icons/pi";
 import { useUser } from "../../../stores/user.store";
 
 const DashboardLayout = () => {
-  // const nav = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const { removeUser }: any = useUser();
-
-  // useEffect(() => {
-  //   console.log(user)
-  //   if (!user) {
-  //     nav("/auth/login/admin");
-  //   }
-  // }, [user]);
 
   return (
     <section className={`dashboard-layout ${collapsed ? "collapsed" : ""}`}>
@@ -41,6 +34,12 @@ const DashboardLayout = () => {
             <Button href="/admin/mcps">
               <PiToolboxLight />
               <span>MCPs</span>
+            </Button>
+          </li>
+          <li>
+            <Button href="/admin/agents">
+              <AiOutlineRobot />
+              <span>Agents</span>
             </Button>
           </li>
           <li>

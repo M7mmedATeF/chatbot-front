@@ -14,7 +14,6 @@ import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
 import { AiOutlineArrowLeft } from "react-icons/ai";
 import dayjs from "dayjs";
-import { Virtuoso } from "react-virtuoso";
 
 const Conversation = () => {
   const [showLiveCalls, setShowLiveCalls] = useState(false);
@@ -24,9 +23,10 @@ const Conversation = () => {
   const { roomId } = useParams();
   const numericRoomId = roomId ? parseInt(roomId, 10) : undefined;
   const [message, setMessage] = useState("");
-  const virtuosoRef = useRef<any>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
-  const [displayedMessagesCount, setDisplayedMessagesCount] = useState(5);
+  const [displayedMessagesCount, setDisplayedMessagesCount] = useState(10);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   // Fetch room data with messages
@@ -113,7 +113,7 @@ const Conversation = () => {
       return toolData.map((toolMsg) => ({
         id: uuidv4(),
         role: toolMsg.role,
-        createdAt: dayjs(toolMsg.timestamp || new Date()).format("hh:mm A"),
+        createdAt: toolMsg.timestamp || new Date(),
         Content: (toolMsg as any).content,
       }));
     } else if (toolCallsData?.getToolCallsBetweenUserMessages) {
@@ -123,23 +123,37 @@ const Conversation = () => {
     return [];
   }, [toolData, toolCallsData, showLiveCalls]);
 
+  // Scroll to bottom helper function
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
+  }, []);
+
   // Auto-scroll to bottom on new messages
   useEffect(() => {
-    if (shouldAutoScroll && virtuosoRef.current) {
+    if (shouldAutoScroll) {
       // Small delay to ensure DOM updates
       setTimeout(() => {
-        virtuosoRef.current?.scrollToIndex({
-          index: allMessages.length - 1,
-          behavior: "smooth",
-          align: "end",
-        });
-      }, 50);
+        scrollToBottom();
+      }, 100);
     }
-  }, [allMessages.length, shouldAutoScroll, isStreaming]);
+  }, [allMessages.length, shouldAutoScroll, scrollToBottom]);
+
+  // Detect if user is near bottom for auto-scroll
+  const handleScroll = useCallback(() => {
+    if (messagesContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } =
+        messagesContainerRef.current;
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+      setShouldAutoScroll(isNearBottom);
+    }
+  }, []);
 
   // Reset displayed count when switching rooms
   useEffect(() => {
-    setDisplayedMessagesCount(5);
+    setDisplayedMessagesCount(10);
   }, [roomId]);
 
   // Load more messages when scrolling to top
@@ -153,7 +167,7 @@ const Conversation = () => {
     // Simulate loading delay (you can remove this if you want instant loading)
     setTimeout(() => {
       setDisplayedMessagesCount((prev) =>
-        Math.min(prev + 5, fullMessagesList.length)
+        Math.min(prev + 20, fullMessagesList.length)
       );
       setIsLoadingMore(false);
     }, 300);
@@ -296,7 +310,7 @@ const Conversation = () => {
                       <div className="tool-call-header">
                         <span className="tool-role">{toolCall.role}</span>
                         <span className="tool-time">
-                          {dayjs(toolCall.createdAt).format("hh:mm A")}
+                          {dayjs(toolCall.createdAt).format("hh:mm:ss A")}
                         </span>
                       </div>
                       {(toolCall.Content || (toolCall as any).content).map(
@@ -309,18 +323,18 @@ const Conversation = () => {
                               <div className="tool-request">
                                 <h4>Tool Request</h4>
                                 <pre>
-                                  {JSON.stringify(content.toolRequest, null, 2)}
+                                  {JSON.stringify(content.toolRequest, null, 1)}
                                 </pre>
                               </div>
                             )}
                             {content.toolResponse && (
                               <div className="tool-response">
                                 <h4>Tool Response</h4>
-                                <pre>
+                                <pre style={{ whiteSpace: "pre-wrap" }}>
                                   {JSON.stringify(
                                     content.toolResponse,
                                     null,
-                                    2
+                                    1
                                   )}
                                 </pre>
                               </div>
@@ -362,91 +376,46 @@ const Conversation = () => {
                 <Button onClick={() => window.location.reload()}>Retry</Button>
               </div>
             </div>
-          ) : allMessages.length > 0 ? (
-            <Virtuoso
-              className="messages-list"
-              ref={virtuosoRef}
-              style={{ height: "100%" }}
-              data={allMessages}
-              initialTopMostItemIndex={allMessages.length - 1}
-              followOutput="smooth"
-              atBottomStateChange={(atBottom) => {
-                setShouldAutoScroll(atBottom);
-              }}
-              startReached={loadMoreMessages}
-              components={{
-                Header: () =>
-                  displayedMessagesCount < fullMessagesList.length ? (
-                    <div
-                      style={{
-                        padding: "20px",
-                        textAlign: "center",
-                      }}
-                    >
-                      {isLoadingMore ? (
-                        <div className="flex items-center justify-center gap-2">
-                          <Loader />
-                          <span>Loading more messages...</span>
-                        </div>
-                      ) : (
-                        <Button onClick={loadMoreMessages} theme="secondary">
-                          Load{" "}
-                          {Math.min(
-                            5,
-                            fullMessagesList.length - displayedMessagesCount
-                          )}{" "}
-                          more messages
-                        </Button>
-                      )}
-                    </div>
-                  ) : displayedMessagesCount >= fullMessagesList.length &&
-                    fullMessagesList.length > 5 ? (
-                    <div
-                      style={{
-                        padding: "20px",
-                        textAlign: "center",
-                        color: "#666",
-                      }}
-                    >
-                      <p>All messages loaded</p>
-                    </div>
-                  ) : null,
-                EmptyPlaceholder: () => (
-                  <div className="empty-container">
-                    <p>No messages yet. Start the conversation!</p>
-                  </div>
-                ),
-              }}
-              itemContent={(index, msg) => {
-                if (msg.role === "USER") {
-                  return (
-                    <UserMessage
-                      key={`chat_${index}_${msg.id}_${uuidv4()}`}
-                      message={msg}
-                    />
-                  );
-                }
-
-                if (msg.role === "MODEL" || msg.role === "SYSTEM") {
-                  return (
-                    <AgentMessage
-                      key={msg.id}
-                      message={msg}
-                      OnOpenMessages={() => {
-                        showMessageProcessingCalls(msg.id);
-                      }}
-                    />
-                  );
-                }
-
-                return null;
-              }}
-            />
           ) : (
-            <div className="messages-list">
-              <div className="empty-container">
-                <p>No messages yet. Start the conversation!</p>
-              </div>
+            <div
+              className="messages-list"
+              ref={messagesContainerRef}
+              onScroll={handleScroll}
+            >
+              {displayedMessagesCount < fullMessagesList.length && (
+                <div className="load-more-messages flex justify-center">
+                  <Button theme="primary" onClick={loadMoreMessages}>
+                    Load More Messages
+                  </Button>
+                </div>
+              )}
+              {allMessages.length === 0 ? (
+                <div className="empty-container">
+                  <p>No messages yet. Start the conversation!</p>
+                </div>
+              ) : (
+                <>
+                  {allMessages.map((msg) => {
+                    if (msg.role === "USER") {
+                      return (
+                        <UserMessage key={`chat_${msg.id}`} message={msg} />
+                      );
+                    } else if (msg.role === "MODEL") {
+                      return (
+                        <AgentMessage
+                          key={`chat_${msg.id}`}
+                          message={msg}
+                          OnOpenMessages={() => {
+                            showMessageProcessingCalls(msg.id);
+                          }}
+                        />
+                      );
+                    }
+                    return "";
+                  })}
+                  <div ref={messagesEndRef} />
+                </>
+              )}
             </div>
           )}
         </div>

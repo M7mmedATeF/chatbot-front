@@ -35,7 +35,7 @@ const AgentMessage = ({ message, OnOpenMessages }: AgentMessageProps) => {
           </div>
         )}
         <p className="datetime">
-          <span>{dayjs(message.createdAt).format("hh:mm A")}</span>
+          <span>{dayjs(message.createdAt).format("hh:mm:ss A")}</span>
         </p>
       </div>
 

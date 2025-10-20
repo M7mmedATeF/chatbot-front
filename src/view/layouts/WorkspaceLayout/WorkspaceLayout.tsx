@@ -136,6 +136,11 @@ const WorkspaceLayout = () => {
     updateTeamId(teamId || "");
   }, [teamId, updateTeamId]);
 
+  useEffect(() => {
+    const isAdmin = !!user.AdminAuditLog;
+    if (isAdmin) nav(activeRoutes.admin.dashboard, { replace: true });
+  }, []);
+
   // Auto-select workspace from URL if not already active
   useEffect(() => {
     if (wsId && workspacesData?.myWorkspaces && activeWorkspaceId !== wsId) {

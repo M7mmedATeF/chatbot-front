@@ -26,7 +26,13 @@ const Image = ({
 
   return (
     <>
-      <img src={imgSrc} alt={alt || "Image"} {...props} onError={handleError} />
+      <img
+        src={imgSrc}
+        alt={alt || "Image"}
+        style={{ background: "#fff" }}
+        {...props}
+        onError={handleError}
+      />
     </>
   );
 };

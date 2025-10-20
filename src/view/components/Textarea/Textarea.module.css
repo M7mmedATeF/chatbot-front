@@ -5,12 +5,12 @@
   align-items: flex-start;
   width: 100%;
   height: 100%;
-  border: 1px solid var(--secondary-text-color);
-  border-radius: 0.2rem;
-  min-height: 50px;
 
   label {
     width: 100%;
+    border: 1px solid var(--secondary-text-color);
+    border-radius: 0.2rem;
+    min-height: 50px;
   }
 
   textarea {

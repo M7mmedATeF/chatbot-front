@@ -26,6 +26,7 @@ import DashboardLayout from "../../view/layouts/DashboardLayout/DashboardLayout"
 import AuthGaurd from "../../utils/Gaurds/AuthGaurd";
 import Dashboard from "../../view/pages/admin/dashboard/Dashboard";
 import AdminMCPsList from "../../view/pages/admin/mcps/AdminMCPsList";
+import AdminAgentsList from "../../view/pages/admin/agents/AdminAgentsList";
 
 const MainRoutes = createBrowserRouter([
   {
@@ -178,7 +179,11 @@ const MainRoutes = createBrowserRouter([
   },
   {
     path: "admin",
-    element: <DashboardLayout />,
+    element: (
+      <AuthGaurd>
+        <DashboardLayout />
+      </AuthGaurd>
+    ),
     children: [
       {
         index: true,
@@ -187,6 +192,10 @@ const MainRoutes = createBrowserRouter([
       {
         path: "mcps",
         element: <AdminMCPsList />,
+      },
+      {
+        path: "agents",
+        element: <AdminAgentsList />,
       },
     ],
   },

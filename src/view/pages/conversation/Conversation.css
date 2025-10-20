@@ -54,7 +54,6 @@
   .conversation-body-layout {
     display: grid;
     grid-template-columns: minmax(0, 0fr) minmax(0, 4fr);
-    height: 80dvh;
 
     &.show-mcp {
       grid-template-columns: minmax(0, 3fr) minmax(0, 4fr);
@@ -96,12 +95,21 @@
     overflow-y: auto;
     padding: 1rem;
 
+    &.conversation-body {
+      padding: 0rem;
+
+      div[data-viewport-type] {
+        padding: 1rem;
+      }
+    }
+
     .messages-list {
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
       align-items: stretch;
       gap: 1rem;
+      padding: 1rem;
 
       .wmde-markdown {
         background-color: transparent;
@@ -138,10 +146,15 @@
         }
       }
 
+      div[data-index]:not(:first-child) {
+        margin-top: 1rem;
+      }
+
       .message-container {
         display: flex;
         justify-content: flex-start;
         align-items: center;
+        padding-bottom: 2rem;
 
         &:has(.user-message) {
           justify-content: flex-end;

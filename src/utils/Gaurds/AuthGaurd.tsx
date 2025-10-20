@@ -15,7 +15,7 @@ const AuthGaurd = ({ children }: { children: React.ReactNode }) => {
         setUser(JSON.parse(userData));
       } else {
         removeUser();
-        nav(activeRoutes.auth.login);
+        nav(activeRoutes.auth.login, { replace: true });
       }
     }
   }, [user]);

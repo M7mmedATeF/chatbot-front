@@ -19,14 +19,13 @@
     border-radius: 0.2rem;
     border: 1px solid var(--secondary-text-color);
     margin-inline-end: 0.5rem;
-    transition: color 0.2s ease-in;
+    transition: all 0.2s ease-in;
+  }
 
-    &:has(input:checked) {
-      &::before {
-        content: "✓";
-        color: #fff;
-      }
-    }
+  &:has(input:checked)::before {
+    content: "✓";
+    color: #fff;
+    background: var(--primary-color);
   }
 }
 
