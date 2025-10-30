@@ -45,12 +45,7 @@ const AdminAgentsList = () => {
   const { mutate: createAgent, isPending: isCreating } = useCreateAgent();
   const { mutate: updateAgent, isPending: isUpdating } = useUpdateAgent();
 
-  const {
-    control,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<CreateAgentFormData>({
+  const { control, handleSubmit, reset } = useForm<CreateAgentFormData>({
     resolver: zodResolver(createAgentSchema),
     defaultValues: {
       name: "",

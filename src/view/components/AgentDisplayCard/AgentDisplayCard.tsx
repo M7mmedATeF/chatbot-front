@@ -5,7 +5,6 @@ import type { AgentItem } from "../../../services/Queries/Agents.gql";
 import { FaChevronDown, FaChevronUp, FaEdit } from "react-icons/fa";
 import { useChangeAgentStatus } from "../../../hooks/useChangeAgentStatus";
 import type { AgentStatus } from "../../../services/Mutations/Agent.gql";
-import CircularProgress from "../CircularProgress/CircularProgress";
 import Button from "../Button/Button";
 import Loader from "../Loader/Loader";
 
