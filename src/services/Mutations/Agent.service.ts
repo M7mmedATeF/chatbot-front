@@ -152,3 +152,46 @@ export const updateAgentMutation = async (
 
   return response.data.data as UpdateAgentResponse;
 };
+
+// Remove Agent Mutation
+export const RemoveAgentMutation = `
+mutation RemoveAgent($removeAgentInput: RemoveAgentInput!) {
+    removeAgent(removeAgentInput: $removeAgentInput) {
+        id
+        name
+    }
+}
+`;
+
+// Types for remove agent
+export interface RemoveAgentInput {
+  id: number;
+  forceDelete: boolean;
+}
+
+export interface RemoveAgentVariables {
+  removeAgentInput: RemoveAgentInput;
+}
+
+export interface RemovedAgent {
+  id: number;
+  name: string;
+}
+
+export interface RemoveAgentResponse {
+  removeAgent: RemovedAgent;
+}
+
+// Remove mutation function
+export const removeAgentMutation = async (
+  input: RemoveAgentInput
+): Promise<RemoveAgentResponse> => {
+  const response = await AxiosFetch.post<ApiResponse<RemoveAgentResponse>>("", {
+    query: RemoveAgentMutation,
+    variables: {
+      removeAgentInput: input,
+    },
+  });
+
+  return response.data.data as RemoveAgentResponse;
+};

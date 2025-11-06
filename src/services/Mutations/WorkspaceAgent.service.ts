@@ -68,3 +68,49 @@ export const assignAgentToWorkspaceMutation = async (
 
   return response.data.data as AssignAgentToWorkspaceResponse;
 };
+
+// Remove Agent From Workspace Mutation
+export const RemoveWorkspaceAgentMutation = `
+mutation RemoveWorkspaceAgent($removeWorkspaceAgentInput: RemoveWorkspaceAgentInput!) {
+    removeWorkspaceAgent(removeWorkspaceAgentInput: $removeWorkspaceAgentInput) {
+        createdAt
+        id
+        name
+    }
+}
+`;
+
+// Types for remove agent
+export interface RemoveWorkspaceAgentInput {
+  workspaceAgentId: number;
+}
+
+export interface RemoveWorkspaceAgentVariables {
+  removeWorkspaceAgentInput: RemoveWorkspaceAgentInput;
+}
+
+export interface RemovedWorkspaceAgent {
+  createdAt: string;
+  id: number;
+  name: string;
+}
+
+export interface RemoveWorkspaceAgentResponse {
+  removeWorkspaceAgent: RemovedWorkspaceAgent;
+}
+
+// Mutation function
+export const removeWorkspaceAgentMutation = async (
+  input: RemoveWorkspaceAgentInput
+): Promise<RemoveWorkspaceAgentResponse> => {
+  const response = await AxiosFetch.post<
+    ApiResponse<RemoveWorkspaceAgentResponse>
+  >("", {
+    query: RemoveWorkspaceAgentMutation,
+    variables: {
+      removeWorkspaceAgentInput: input,
+    },
+  });
+
+  return response.data.data as RemoveWorkspaceAgentResponse;
+};

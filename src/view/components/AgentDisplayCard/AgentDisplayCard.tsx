@@ -2,11 +2,14 @@ import { useState, useRef, useEffect } from "react";
 import style from "./AgentDisplayCard.module.css";
 import Image from "../Image/Image";
 import type { AgentItem } from "../../../services/Queries/Agents.gql";
-import { FaChevronDown, FaChevronUp, FaEdit } from "react-icons/fa";
+import { FaChevronDown, FaChevronUp, FaEdit, FaTrash } from "react-icons/fa";
 import { useChangeAgentStatus } from "../../../hooks/useChangeAgentStatus";
+import { useRemoveAgent } from "../../../hooks/useRemoveAgent";
 import type { AgentStatus } from "../../../services/Mutations/Agent.gql";
 import Button from "../Button/Button";
 import Loader from "../Loader/Loader";
+import Modal from "../Modal/Modal";
+import { toast } from "react-toastify";
 
 const MAX_INSTRUCTION_LENGTH = 150;
 
@@ -15,16 +18,23 @@ const AGENT_STATUSES: AgentStatus[] = ["ACTIVE", "MAINTENANCE", "INACTIVE"];
 interface AgentDisplayCardProps {
   agent: AgentItem;
   onEdit?: (agent: AgentItem) => void;
+  onDelete?: () => void;
 }
 
-const AgentDisplayCard = ({ agent, onEdit }: AgentDisplayCardProps) => {
+const AgentDisplayCard = ({
+  agent,
+  onEdit,
+  onDelete,
+}: AgentDisplayCardProps) => {
   const [showFullInstruction, setShowFullInstruction] = useState(false);
   const [expandedMcpIds, setExpandedMcpIds] = useState<Set<number>>(new Set());
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { mutate: changeStatus, isPending: isChangingStatus } =
     useChangeAgentStatus();
+  const { mutate: removeAgent, isPending: isRemoving } = useRemoveAgent();
 
   const toggleMcpExpanded = (mcpId: number) => {
     setExpandedMcpIds((prev) => {
@@ -73,6 +83,26 @@ const AgentDisplayCard = ({ agent, onEdit }: AgentDisplayCardProps) => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showStatusDropdown]);
+
+  const handleDelete = () => {
+    removeAgent(
+      {
+        id: agent.id,
+        forceDelete: true,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Agent deleted successfully");
+          setShowDeleteModal(false);
+          if (onDelete) onDelete();
+        },
+        onError: (error) => {
+          console.error("Failed to delete agent:", error);
+          toast.error("Failed to delete agent. Please try again.");
+        },
+      }
+    );
+  };
 
   const instructionText = agent.sys_instruction || "";
   const shouldTruncateInstruction =
@@ -145,6 +175,16 @@ const AgentDisplayCard = ({ agent, onEdit }: AgentDisplayCardProps) => {
                 <FaEdit size={14} />
               </Button>
             )}
+            <Button
+              onClick={() => setShowDeleteModal(true)}
+              className={style.editButton}
+              theme="danger"
+              style={{
+                padding: "0px",
+              }}
+            >
+              <FaTrash size={14} />
+            </Button>
           </div>
         </div>
 
@@ -253,6 +293,21 @@ const AgentDisplayCard = ({ agent, onEdit }: AgentDisplayCardProps) => {
           </>
         )}
       </div>
+
+      <Modal
+        open={showDeleteModal}
+        title="Delete Agent"
+        onClose={() => setShowDeleteModal(false)}
+        onSave={handleDelete}
+        cancellable
+        isLoading={isRemoving}
+        size="sm"
+      >
+        <p>
+          Are you sure you want to delete <strong>{agent.name}</strong>? This
+          action cannot be undone.
+        </p>
+      </Modal>
     </div>
   );
 };

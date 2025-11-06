@@ -11,6 +11,8 @@ import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 import { toast } from "react-toastify";
 import type { ListAssignAgentItem } from "../../../services/Queries/WorkspaceAgents.gql";
 import { useAssignAgentToWorkspace } from "../../../hooks/useAssignAgentToWorkspace";
+import { useRemoveAgentFromWorkspace } from "../../../hooks/useRemoveAgentFromWorkspace";
+import Modal from "../Modal/Modal";
 
 interface AgentAssignCardProps {
   agentData: ListAssignAgentItem;
@@ -26,11 +28,14 @@ const AgentAssignCard = ({ agentData, onUpdate }: AgentAssignCardProps) => {
   const [sysInstructions, setSysInstructions] = useState("");
   const [selectedTools, setSelectedTools] = useState<Set<number>>(new Set());
   const [envValues, setEnvValues] = useState<Record<string, string>>({});
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
 
   const MAX_DEFAULT_INSTRUCTIONS_LENGTH = 200;
 
   const { mutate: assignAgent, isPending: isAssigning } =
     useAssignAgentToWorkspace();
+  const { mutate: removeAgent, isPending: isRemoving } =
+    useRemoveAgentFromWorkspace();
 
   useEffect(() => {
     setShowAssign(isAssigned);
@@ -120,6 +125,40 @@ const AgentAssignCard = ({ agentData, onUpdate }: AgentAssignCardProps) => {
     );
   };
 
+  const handleToggleChange = (checked: boolean) => {
+    // If deactivating (turning off) and agent is assigned, show confirmation modal
+    if (!checked && isAssigned && agentData.workspaceAgentId) {
+      setShowRemoveModal(true);
+      // Keep toggle in checked state until user confirms
+      setShowAssign(true);
+    } else {
+      // If activating, just show the assign form
+      setShowAssign(checked);
+    }
+  };
+
+  const handleConfirmRemove = () => {
+    if (!agentData.workspaceAgentId) return;
+
+    removeAgent(
+      {
+        workspaceAgentId: agentData.workspaceAgentId,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Agent removed successfully");
+          setShowRemoveModal(false);
+          setShowAssign(false);
+          if (onUpdate) onUpdate();
+        },
+        onError: (error) => {
+          console.error("Failed to remove agent:", error);
+          toast.error("Failed to remove agent. Please try again.");
+        },
+      }
+    );
+  };
+
   return (
     <div className={`${style.agentAssignCard} glass-bg`}>
       <div className={style.cardHeader}>
@@ -142,7 +181,8 @@ const AgentAssignCard = ({ agentData, onUpdate }: AgentAssignCardProps) => {
         <Toggle
           theme={isAssigned ? "success" : "tertiary"}
           checked={showAssign}
-          onChange={(checked: any) => setShowAssign(checked)}
+          onChange={handleToggleChange as any}
+          disabled={isRemoving}
         />
       </div>
 
@@ -274,6 +314,21 @@ const AgentAssignCard = ({ agentData, onUpdate }: AgentAssignCardProps) => {
           </Button>
         </div>
       )}
+
+      <Modal
+        open={showRemoveModal}
+        title="Remove Agent"
+        onClose={() => setShowRemoveModal(false)}
+        onSave={handleConfirmRemove}
+        cancellable
+        isLoading={isRemoving}
+        size="sm"
+      >
+        <p>
+          Are you sure you want to remove <strong>{agent.name}</strong> from
+          this workspace?
+        </p>
+      </Modal>
     </div>
   );
 };

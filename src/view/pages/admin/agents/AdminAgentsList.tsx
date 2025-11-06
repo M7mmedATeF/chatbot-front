@@ -205,6 +205,9 @@ const AdminAgentsList = () => {
             key={agent.id}
             agent={agent}
             onEdit={openEditModal}
+            onDelete={() => {
+              // Query will automatically refetch due to cache invalidation in useRemoveAgent hook
+            }}
           />
         ))}
 

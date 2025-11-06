@@ -6,6 +6,7 @@ export const ListAssignAgentsQuery = `
 query ListAssignAgents {
     listAssignAgents {
         isAssigned
+        workspaceAgentId
         agent {
             id
             name
@@ -86,6 +87,7 @@ export interface AssignableAgent {
 
 export interface ListAssignAgentItem {
   isAssigned: boolean;
+  workspaceAgentId?: number | null;
   agent: AssignableAgent;
 }
 
