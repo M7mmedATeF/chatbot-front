@@ -124,7 +124,7 @@ export interface UpdateAgentInput {
   icon?: string | null;
   version?: string | null;
   sys_instruction?: string | null;
-  newAgentTools?: number[] | null;
+  newAgentMcpIds?: number[] | null;
   deleteAgentTools?: number[] | null;
 }
 

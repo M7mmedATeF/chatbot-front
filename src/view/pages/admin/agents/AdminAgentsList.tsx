@@ -65,7 +65,7 @@ const AdminAgentsList = () => {
       const originalMcpIds = editingAgent.AgentTools.map((tool) => tool.id);
       const newMcpIds = formData.AgentMcpIds;
 
-      const newAgentTools = newMcpIds.filter(
+      const newAgentMcpIds = newMcpIds.filter(
         (id) => !originalMcpIds.includes(id)
       );
       const deleteAgentTools = originalMcpIds.filter(
@@ -88,7 +88,8 @@ const AdminAgentsList = () => {
               formData.sys_instruction !== editingAgent.sys_instruction
                 ? formData.sys_instruction
                 : undefined,
-            newAgentTools: newAgentTools.length > 0 ? newAgentTools : undefined,
+            newAgentMcpIds:
+              newAgentMcpIds.length > 0 ? newAgentMcpIds : undefined,
             deleteAgentTools:
               deleteAgentTools.length > 0 ? deleteAgentTools : undefined,
           },
